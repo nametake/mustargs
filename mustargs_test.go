@@ -12,4 +12,5 @@ import (
 func TestAnalyzer(t *testing.T) {
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
 	analysistest.Run(t, testdata, mustargs.Analyzer, "a")
+	analysistest.Run(t, testdata, mustargs.Analyzer, "pattern")
 }

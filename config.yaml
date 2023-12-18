@@ -1,0 +1,9 @@
+---
+rules:
+  - arg_type:
+      - type_name: TenantID
+      - index: 1
+    file_patterns:
+      - "project_*.go"
+    func_patterns:
+      - "New*"

@@ -1,6 +1,7 @@
 package mustargs
 
 import (
+	"fmt"
 	"go/ast"
 
 	"golang.org/x/tools/go/analysis"
@@ -28,6 +29,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
+		fmt.Println(pass.Fset.Position(n.Pos()).Filename)
 		switch n := n.(type) {
 		case *ast.Ident:
 			if n.Name == "gopher" {
