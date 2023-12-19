@@ -11,7 +11,6 @@ import (
 
 // TestAnalyzer is a test for Analyzer.
 func TestAnalyzer(t *testing.T) {
-
 	tests := []struct {
 		configFile string
 		patterns   []string

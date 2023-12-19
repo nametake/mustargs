@@ -3,7 +3,7 @@ package mustargs
 import (
 	"fmt"
 	"go/ast"
-	"io/ioutil"
+	"os"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -32,7 +32,7 @@ func init() {
 }
 
 func loadConfig(filepath string) (*Config, error) {
-	file, err := ioutil.ReadFile(filepath)
+	file, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
