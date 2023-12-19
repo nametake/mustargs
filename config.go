@@ -5,10 +5,13 @@ type Config struct {
 }
 
 type Rule struct {
-	ArgType []struct {
-		TypeName string `yaml:"type_name"`
-		Index    int    `yaml:"index,omitempty"`
-	} `yaml:"arg_type,omitempty"`
+	Args         []Arg    `yaml:"args"`
 	FilePatterns []string `yaml:"file_patterns,omitempty"`
 	FuncPatterns []string `yaml:"func_patterns,omitempty"`
+	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
+}
+
+type Arg struct {
+	Type  string `yaml:"type"`
+	Index int    `yaml:"index"`
 }

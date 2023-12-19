@@ -1,9 +1,16 @@
 ---
 rules:
-  - arg_type:
-      - type_name: TenantID
-      - index: 1
+  - args:
+    - type: Context
+      index: 0
+    - type: TenantID
+      index: 1
     file_patterns:
-      - "project_*.go"
+      - usecase/tenant_*.go
+      - mysql/tenant_*.go
     func_patterns:
-      - "New*"
+      - Get.*
+      - Update.*
+    recv_patterns:
+      - ^TenantUsecase$
+      - ^TenantDB$
