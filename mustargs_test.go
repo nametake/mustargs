@@ -16,8 +16,8 @@ func TestAnalyzer(t *testing.T) {
 		patterns   []string
 	}{
 		{
-			configFile: "testdata/src/pattern/config.yaml",
-			patterns:   []string{"pattern"},
+			configFile: "testdata/src/primitive/config.yaml",
+			patterns:   []string{"primitive"},
 		},
 	}
 

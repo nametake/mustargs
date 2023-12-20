@@ -1,7 +1,6 @@
 package mustargs
 
 import (
-	"fmt"
 	"go/ast"
 	"os"
 
@@ -66,7 +65,6 @@ func run(pass *analysis.Pass) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", config)
 
 	nodeFilter := []ast.Node{
 		(*ast.Ident)(nil),
