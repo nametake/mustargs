@@ -81,9 +81,15 @@ func run(pass *analysis.Pass) (any, error) {
 			args := ParseFuncDecl(n)
 			for _, rule := range config.Rules {
 				for _, arg := range rule.Args {
-					for _, a := range args {
-						if a.Name == arg.Type {
-							return
+					for i, a := range args {
+						if arg.Index != nil {
+							if i == *arg.Index && a.Name == arg.Type {
+								return
+							}
+						} else {
+							if a.Name == arg.Type {
+								return
+							}
 						}
 					}
 					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, arg.Type)
