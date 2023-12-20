@@ -1,7 +1,5 @@
 package pattern
 
-import "context"
-
-func f(ctx context.Context) { // want "no TenantID"
+func f(str string) { // want "no string"
 
 }

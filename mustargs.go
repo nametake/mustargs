@@ -47,7 +47,6 @@ func loadConfig(filepath string) (*Config, error) {
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
-	fmt.Println("@@@", configPath)
 	config, err := loadConfig(configPath)
 	if err != nil {
 		return nil, err
@@ -56,16 +55,19 @@ func run(pass *analysis.Pass) (any, error) {
 
 	nodeFilter := []ast.Node{
 		(*ast.Ident)(nil),
+		(*ast.FuncDecl)(nil),
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		fmt.Println(pass.Fset.Position(n.Pos()).Filename)
 		switch n := n.(type) {
 		case *ast.Ident:
 			if n.Name == "gopher" {
 				pass.Reportf(n.Pos(), "identifier is gopher")
 			}
+		case *ast.FuncDecl:
+			fmt.Printf("%+v\n", n.Type.Params)
 		}
+
 	})
 
 	return nil, nil

@@ -35,6 +35,4 @@ func TestAnalyzer(t *testing.T) {
 		}
 		analysistest.Run(t, testdata, mustargs.Analyzer, tt.patterns...)
 	}
-	analysistest.Run(t, testdata, mustargs.Analyzer, "a")
-	analysistest.Run(t, testdata, mustargs.Analyzer, "pattern")
 }

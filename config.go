@@ -13,5 +13,5 @@ type Rule struct {
 
 type Arg struct {
 	Type  string `yaml:"type"`
-	Index int    `yaml:"index,omitempty"`
+	Index *int   `yaml:"index,omitempty"`
 }
