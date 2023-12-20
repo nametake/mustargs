@@ -44,6 +44,21 @@ func loadConfig(filepath string) (*Config, error) {
 	return config, nil
 }
 
+type AstArg struct {
+	Type *ast.Ident
+	Name *ast.Ident
+}
+
+func ParseFuncDecl(funcDecl *ast.FuncDecl) []*ast.Ident {
+	var args []*ast.Ident
+	for _, li := range funcDecl.Type.Params.List {
+		for range li.Names {
+			args = append(args, li.Type.(*ast.Ident))
+		}
+	}
+	return args
+}
+
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
@@ -65,7 +80,17 @@ func run(pass *analysis.Pass) (any, error) {
 				pass.Reportf(n.Pos(), "identifier is gopher")
 			}
 		case *ast.FuncDecl:
-			fmt.Printf("%+v\n", n.Type.Params)
+			args := ParseFuncDecl(n)
+			for _, rule := range config.Rules {
+				for _, arg := range rule.Args {
+					for _, a := range args {
+						if a.Name == arg.Type {
+							return
+						}
+					}
+					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, arg.Type)
+				}
+			}
 		}
 
 	})
