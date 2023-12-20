@@ -52,7 +52,13 @@ func ParseFuncDecl(funcDecl *ast.FuncDecl) []*ast.Ident {
 	var args []*ast.Ident
 	for _, li := range funcDecl.Type.Params.List {
 		for range li.Names {
-			args = append(args, li.Type.(*ast.Ident))
+			switch t := li.Type.(type) {
+			case *ast.Ident:
+				args = append(args, t)
+			case *ast.SelectorExpr:
+				// TODO support pkg
+				args = append(args, t.Sel)
+			}
 		}
 	}
 	return args
@@ -96,7 +102,6 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 		}
-
 	})
 
 	return nil, nil
