@@ -44,8 +44,33 @@ func loadConfig(filepath string) (*Config, error) {
 }
 
 type AstArg struct {
-	Type *ast.Ident
-	Name *ast.Ident
+	Index int
+	Type  string
+	Name  string
+}
+
+func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
+	var args []*AstArg
+	for _, li := range funcDecl.Type.Params.List {
+		for index, name := range li.Names {
+			switch typ := li.Type.(type) {
+			case *ast.Ident:
+				args = append(args, &AstArg{
+					Index: index,
+					Type:  typ.Name,
+					Name:  name.Name,
+				})
+			case *ast.SelectorExpr:
+				// TODO support pkg
+				args = append(args, &AstArg{
+					Index: index,
+					Type:  typ.Sel.Name,
+					Name:  name.Name,
+				})
+			}
+		}
+	}
+	return args
 }
 
 func ParseFuncDecl(funcDecl *ast.FuncDecl) []*ast.Ident {
