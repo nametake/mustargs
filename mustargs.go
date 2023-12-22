@@ -148,8 +148,8 @@ func run(pass *analysis.Pass) (any, error) {
 						failedRuleArgs = append(failedRuleArgs, ruleArg)
 					}
 				}
-				for _, failedRukeArg := range failedRuleArgs {
-					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, failedRukeArg.Type)
+				for _, failedRuleArg := range failedRuleArgs {
+					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, failedRuleArg.Type)
 				}
 			}
 		}

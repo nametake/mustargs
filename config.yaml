@@ -2,8 +2,10 @@ rules:
   - args:
       - type: Context
         index: 0
+        pkg: context
       - type: TenantID
         index: 1
+        pkg: github.com/nametake/mustargs
     file_patterns:
       - usecase/tenant_*.go
       - mysql/tenant_*.go
