@@ -3,3 +3,10 @@ rules:
   - args:
       - type: Reader
         index: 1
+  - args:
+      - type: Writer
+        pkg: io
+  - args:
+      - type: File
+        pkg: os
+        ptr: true

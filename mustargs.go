@@ -130,19 +130,26 @@ func run(pass *analysis.Pass) (any, error) {
 			args := ParseFuncDecl(n)
 			for _, rule := range config.Rules {
 				// TODO pattern check
-				for _, arg := range rule.Args {
+				failedRuleArgs := []*RuleArg{}
+				for _, ruleArg := range rule.Args {
+					match := false
 					for i, a := range args {
-						if arg.Index != nil {
-							if i == *arg.Index && a.Name == arg.Type {
-								return
+						if ruleArg.Index != nil {
+							if i == *ruleArg.Index && a.Name == ruleArg.Type {
+								match = true
 							}
 						} else {
-							if a.Name == arg.Type {
-								return
+							if a.Name == ruleArg.Type {
+								match = true
 							}
 						}
 					}
-					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, arg.Type)
+					if !match {
+						failedRuleArgs = append(failedRuleArgs, ruleArg)
+					}
+				}
+				for _, failedRukeArg := range failedRuleArgs {
+					pass.Reportf(n.Pos(), "func %s not found arg %s", n.Name.Name, failedRukeArg.Type)
 				}
 			}
 		}

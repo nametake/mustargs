@@ -2,3 +2,5 @@
 rules:
   - args:
       - type: string
+  - args:
+      - type: int
