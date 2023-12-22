@@ -3,6 +3,7 @@ package mustargs
 import (
 	"go/ast"
 	"os"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -30,6 +31,14 @@ func init() {
 	Analyzer.Flags.StringVar(&configPath, "config", "", "config file path")
 }
 
+func extractPkgName(importPath string) string {
+	parts := strings.Split(importPath, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
+	}
+	return ""
+}
+
 func loadConfig(filepath string) (*Config, error) {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
@@ -38,6 +47,15 @@ func loadConfig(filepath string) (*Config, error) {
 	var config *Config
 	if err := yaml.Unmarshal(file, &config); err != nil {
 		return nil, err
+	}
+
+	for _, rule := range config.Rules {
+		for _, arg := range rule.Args {
+			if arg.Pkg != nil && arg.Name == nil {
+				name := extractPkgName(*arg.Pkg)
+				arg.Name = &name
+			}
+		}
 	}
 
 	return config, nil
@@ -111,6 +129,7 @@ func run(pass *analysis.Pass) (any, error) {
 		case *ast.FuncDecl:
 			args := ParseFuncDecl(n)
 			for _, rule := range config.Rules {
+				// TODO pattern check
 				for _, arg := range rule.Args {
 					for i, a := range args {
 						if arg.Index != nil {
