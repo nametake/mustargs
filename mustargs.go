@@ -132,19 +132,7 @@ func run(pass *analysis.Pass) (any, error) {
 				// TODO pattern check
 				failedRuleArgs := []*RuleArg{}
 				for _, ruleArg := range rule.Args {
-					match := false
-					for i, a := range args {
-						if ruleArg.Index != nil {
-							if i == *ruleArg.Index && a.Name == ruleArg.Type {
-								match = true
-							}
-						} else {
-							if a.Name == ruleArg.Type {
-								match = true
-							}
-						}
-					}
-					if !match {
+					if !ruleArg.Match(args) {
 						failedRuleArgs = append(failedRuleArgs, ruleArg)
 					}
 				}

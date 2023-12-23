@@ -1,5 +1,7 @@
 package mustargs
 
+import "go/ast"
+
 type Config struct {
 	Rules []*Rule `yaml:"rules"`
 }
@@ -17,4 +19,19 @@ type RuleArg struct {
 	Pkg   *string `yaml:"pkg,omitempty"`
 	Name  *string `yaml:"name,omitempty"`
 	Ptr   *bool   `yaml:"ptr,omitempty"`
+}
+
+func (r *RuleArg) Match(args []*ast.Ident) bool {
+	for i, arg := range args {
+		if r.Index != nil {
+			if i == *r.Index && arg.Name == r.Type {
+				return true
+			}
+		} else {
+			if arg.Name == r.Type {
+				return true
+			}
+		}
+	}
+	return false
 }
