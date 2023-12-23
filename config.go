@@ -7,13 +7,13 @@ type Config struct {
 }
 
 type Rule struct {
-	Args         RuleArgs `yaml:"args"`
+	Args         ArgRules `yaml:"args"`
 	FilePatterns []string `yaml:"file_patterns,omitempty"`
 	FuncPatterns []string `yaml:"func_patterns,omitempty"`
 	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
 }
 
-type RuleArg struct {
+type ArgRule struct {
 	Type  string  `yaml:"type"`
 	Index *int    `yaml:"index,omitempty"`
 	Pkg   *string `yaml:"pkg,omitempty"`
@@ -21,10 +21,10 @@ type RuleArg struct {
 	Ptr   *bool   `yaml:"ptr,omitempty"`
 }
 
-type RuleArgs []*RuleArg
+type ArgRules []*ArgRule
 
-func (ruleArgs RuleArgs) Match(args []*ast.Ident) RuleArgs {
-	unmatchRuleArgs := make(RuleArgs, 0, len(ruleArgs))
+func (ruleArgs ArgRules) Match(args []*ast.Ident) ArgRules {
+	unmatchRuleArgs := make(ArgRules, 0, len(ruleArgs))
 	for _, ruleArg := range ruleArgs {
 		if !ruleArg.Match(args) {
 			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
@@ -33,7 +33,7 @@ func (ruleArgs RuleArgs) Match(args []*ast.Ident) RuleArgs {
 	return unmatchRuleArgs
 }
 
-func (r *RuleArg) Match(args []*ast.Ident) bool {
+func (r *ArgRule) Match(args []*ast.Ident) bool {
 	for i, arg := range args {
 		if r.Index != nil {
 			if i == *r.Index && arg.Name == r.Type {

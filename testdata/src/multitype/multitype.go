@@ -3,5 +3,5 @@ package multitype
 func f1(a string, b int) {
 }
 
-func f2(a int, b string) { // want "func f2 not found arg int" "func f2 not found arg string"
+func f2(a int, b string) { // want "no string type arg found for func f2" "no int type arg found for func f2"
 }
