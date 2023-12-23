@@ -7,10 +7,10 @@ type Config struct {
 }
 
 type Rule struct {
-	Args         []*RuleArg `yaml:"args"`
-	FilePatterns []string   `yaml:"file_patterns,omitempty"`
-	FuncPatterns []string   `yaml:"func_patterns,omitempty"`
-	RecvPatterns []string   `yaml:"recv_patterns,omitempty"`
+	Args         RuleArgs `yaml:"args"`
+	FilePatterns []string `yaml:"file_patterns,omitempty"`
+	FuncPatterns []string `yaml:"func_patterns,omitempty"`
+	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
 }
 
 type RuleArg struct {
@@ -19,6 +19,18 @@ type RuleArg struct {
 	Pkg   *string `yaml:"pkg,omitempty"`
 	Name  *string `yaml:"name,omitempty"`
 	Ptr   *bool   `yaml:"ptr,omitempty"`
+}
+
+type RuleArgs []*RuleArg
+
+func (ruleArgs RuleArgs) Match(args []*ast.Ident) RuleArgs {
+	unmatchRuleArgs := make(RuleArgs, 0, len(ruleArgs))
+	for _, ruleArg := range ruleArgs {
+		if !ruleArg.Match(args) {
+			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
+		}
+	}
+	return unmatchRuleArgs
 }
 
 func (r *RuleArg) Match(args []*ast.Ident) bool {
