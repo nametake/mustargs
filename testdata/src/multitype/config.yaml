@@ -1,0 +1,7 @@
+---
+rules:
+  - args:
+      - type: string
+        index: 0
+      - type: int
+        index: 1
