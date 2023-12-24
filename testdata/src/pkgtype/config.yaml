@@ -2,11 +2,9 @@
 rules:
   - args:
       - type: Reader
-        index: 1
-  - args:
-      - type: Writer
         pkg: io
-  - args:
+        index: 1
       - type: File
-        pkg: os
-        ptr: true
+        index: 2
+        pkg: io
+        pkg_name: stdos

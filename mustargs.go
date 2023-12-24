@@ -3,6 +3,7 @@ package mustargs
 import (
 	"fmt"
 	"go/ast"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -74,12 +75,17 @@ func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
 	return args
 }
 
+func trimQuotes(str string) string {
+	replacer := strings.NewReplacer("\"", "", "'", "")
+	return replacer.Replace(str)
+}
+
 func ParseImport(specs []ast.Spec) []*ImportPackage {
 	packages := make([]*ImportPackage, 0, len(specs))
 	for _, spec := range specs {
 		switch s := spec.(type) {
 		case *ast.ImportSpec:
-			pkg := s.Path.Value
+			pkg := trimQuotes(s.Path.Value)
 			name := ""
 			if s.Name != nil {
 				name = s.Name.Name
