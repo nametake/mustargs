@@ -138,6 +138,9 @@ func run(pass *analysis.Pass) (any, error) {
 			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
 			funcName := n.Name.Name
+			if funcName == "init" || funcName == "main" {
+				return
+			}
 			recvName := ParseRecv(n.Recv)
 			args := ParseFunc(n, packages)
 			for _, rule := range config.Rules {
