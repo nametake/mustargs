@@ -27,6 +27,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/multitype/config.yaml",
 			patterns:   []string{"multitype"},
 		},
+		{
+			configFile: "testdata/src/pointerarg/config.yaml",
+			patterns:   []string{"pointerarg"},
+		},
 		// {
 		// 	configFile: "testdata/src/pkgtype/config.yaml",
 		// 	patterns:   []string{"pkgtype"},

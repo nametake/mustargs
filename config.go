@@ -30,7 +30,11 @@ type ArgRules []*ArgRule
 func (argRules ArgRules) ErrorMsg(funcName string) string {
 	ruleErrMsgs := make([]string, 0, len(argRules))
 	for _, rule := range argRules {
-		msg := fmt.Sprintf("no %s type arg", rule.Type)
+		ptr := ""
+		if rule.Ptr != nil && *rule.Ptr {
+			ptr = "*"
+		}
+		msg := fmt.Sprintf("no %s%s type arg", ptr, rule.Type)
 		if rule.Index != nil {
 			msg += fmt.Sprintf(" at index %d", *rule.Index)
 		}
