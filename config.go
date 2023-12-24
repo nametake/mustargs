@@ -32,9 +32,8 @@ func loadConfig(filepath string) (*Config, error) {
 
 	for _, rule := range config.Rules {
 		for _, arg := range rule.Args {
-			if arg.Pkg != nil && arg.Name == nil {
-				name := extractPkgName(*arg.Pkg)
-				arg.Name = &name
+			if arg.PkgName == "" {
+				arg.PkgName = extractPkgName(arg.Pkg)
 			}
 		}
 	}
@@ -50,11 +49,11 @@ type Rule struct {
 }
 
 type ArgRule struct {
-	Type  string  `yaml:"type"`
-	Index *int    `yaml:"index,omitempty"`
-	Pkg   *string `yaml:"pkg,omitempty"`
-	Name  *string `yaml:"name,omitempty"`
-	Ptr   bool    `yaml:"ptr,omitempty"`
+	Type    string `yaml:"type"`
+	Index   *int   `yaml:"index,omitempty"`
+	Pkg     string `yaml:"pkg,omitempty"`
+	PkgName string `yaml:"pkg_name,omitempty"`
+	Ptr     bool   `yaml:"ptr,omitempty"`
 }
 
 type ArgRules []*ArgRule
