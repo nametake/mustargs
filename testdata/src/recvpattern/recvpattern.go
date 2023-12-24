@@ -2,7 +2,10 @@ package recvpattern
 
 type TargetStruct struct{}
 
-func (s *Struct) TargetMethod1(num int) { // want "no string type arg at index 1 found for func TargetMethod1"
+func (s *TargetStruct) TargetMethod1(num int) { // want "no string type arg at index 1 found for func TargetMethod1"
+}
+
+func (TargetStruct) TargetMethod2(num int) { // want "no string type arg at index 1 found for func TargetMethod2"
 }
 
 type Struct struct{}

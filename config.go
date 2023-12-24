@@ -81,6 +81,22 @@ func (rule *Rule) TargetFunc(funcName string) (bool, error) {
 	return false, nil
 }
 
+func (rule *Rule) TargetRecv(recvName string) (bool, error) {
+	if len(rule.RecvPatterns) == 0 {
+		return true, nil
+	}
+	for _, pattern := range rule.RecvPatterns {
+		matched, err := regexp.MatchString(pattern, recvName)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 type ArgRule struct {
 	Type    string `yaml:"type"`
 	Index   *int   `yaml:"index,omitempty"`

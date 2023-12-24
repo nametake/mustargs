@@ -103,6 +103,19 @@ func ParseImport(specs []ast.Spec) map[string]string {
 	return packages
 }
 
+func ParseRecv(recv *ast.FieldList) string {
+	if recv == nil {
+		return ""
+	}
+	switch typ := recv.List[0].Type.(type) {
+	case *ast.Ident:
+		return typ.Name
+	case *ast.StarExpr:
+		return typ.X.(*ast.Ident).Name
+	}
+	return ""
+}
+
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
@@ -125,6 +138,7 @@ func run(pass *analysis.Pass) (any, error) {
 			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
 			funcName := n.Name.Name
+			recvName := ParseRecv(n.Recv)
 			args := ParseFunc(n, packages)
 			for _, rule := range config.Rules {
 				targetFile, err := rule.TargetFile(fileName)
@@ -142,6 +156,14 @@ func run(pass *analysis.Pass) (any, error) {
 					return
 				}
 				if !targetFunc {
+					continue
+				}
+
+				targetRecv, err := rule.TargetRecv(recvName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+				}
+				if !targetRecv {
 					continue
 				}
 
