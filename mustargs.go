@@ -34,6 +34,11 @@ type AstArg struct {
 	Ptr   bool
 }
 
+type ImportPackage struct {
+	Pkg     string
+	PkgName string
+}
+
 func ParseAst(expr ast.Expr, index int, ptr bool) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.Ident:
