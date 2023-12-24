@@ -35,6 +35,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/pkgtype/config.yaml",
 			patterns:   []string{"pkgtype"},
 		},
+		{
+			configFile: "testdata/src/typedarg/config.yaml",
+			patterns:   []string{"typedarg"},
+		},
 	}
 
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
