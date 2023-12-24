@@ -36,8 +36,8 @@ func TestAnalyzer(t *testing.T) {
 			patterns:   []string{"pkgtype"},
 		},
 		{
-			configFile: "testdata/src/typedarg/config.yaml",
-			patterns:   []string{"typedarg"},
+			configFile: "testdata/src/pkgtypenopkg/config.yaml",
+			patterns:   []string{"pkgtypenopkg"},
 		},
 	}
 

@@ -91,17 +91,10 @@ func (argRules ArgRules) Match(args []*AstArg) ArgRules {
 
 func (rule *ArgRule) Match(args []*AstArg) bool {
 	for _, arg := range args {
-		if rule.Index != nil {
-			if arg.Index == *rule.Index && arg.Type == rule.Type && arg.Ptr == rule.Ptr && arg.Pkg == rule.Pkg && arg.PkgName == rule.PkgName {
-				return true
-			}
-		} else {
-			if arg.Type == rule.Type && arg.Ptr == rule.Ptr && arg.Pkg == rule.Pkg && arg.PkgName == rule.PkgName {
-				return true
-			}
+		if rule.MatchType(arg) && rule.MatchIndex(arg) && rule.MatchPtr(arg) && rule.MatchPkg(arg) {
+			return true
 		}
 	}
-
 	return false
 }
 

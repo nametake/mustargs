@@ -1,0 +1,8 @@
+---
+rules:
+  - args:
+      - type: Reader
+        index: 1
+      - type: File
+        index: 2
+        ptr: true
