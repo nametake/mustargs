@@ -104,3 +104,25 @@ func (rule *ArgRule) Match(args []*AstArg) bool {
 
 	return false
 }
+
+func (rule *ArgRule) MatchType(arg *AstArg) bool {
+	return arg.Type == rule.Type
+}
+
+func (rule *ArgRule) MatchIndex(arg *AstArg) bool {
+	if rule.Index != nil {
+		return arg.Index == *rule.Index
+	}
+	return true
+}
+
+func (rule *ArgRule) MatchPtr(arg *AstArg) bool {
+	return arg.Ptr == rule.Ptr
+}
+
+func (rule *ArgRule) MatchPkg(arg *AstArg) bool {
+	if rule.Pkg != "" {
+		return arg.Pkg == rule.Pkg && rule.PkgName == arg.PkgName
+	}
+	return true
+}
