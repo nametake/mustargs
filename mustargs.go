@@ -124,14 +124,24 @@ func run(pass *analysis.Pass) (any, error) {
 		case *ast.GenDecl:
 			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
+			funcName := n.Name.Name
 			args := ParseFunc(n, packages)
 			for _, rule := range config.Rules {
-				target, err := rule.TargetFile(fileName)
+				targetFile, err := rule.TargetFile(fileName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())
 					return
 				}
-				if !target {
+				if !targetFile {
+					continue
+				}
+
+				targetFunc, err := rule.TargetFunc(funcName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+					return
+				}
+				if !targetFunc {
 					continue
 				}
 

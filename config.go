@@ -65,6 +65,22 @@ func (rule *Rule) TargetFile(filename string) (bool, error) {
 	return false, nil
 }
 
+func (rule *Rule) TargetFunc(funcName string) (bool, error) {
+	if len(rule.FuncPatterns) == 0 {
+		return true, nil
+	}
+	for _, pattern := range rule.FuncPatterns {
+		matched, err := regexp.MatchString(pattern, funcName)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 type ArgRule struct {
 	Type    string `yaml:"type"`
 	Index   *int   `yaml:"index,omitempty"`
