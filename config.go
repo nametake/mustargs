@@ -49,7 +49,7 @@ type Rule struct {
 	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
 }
 
-func (rule *Rule) TargetFile(filename string) (bool, error) {
+func (rule *Rule) IsTargetFile(filename string) (bool, error) {
 	if len(rule.FilePatterns) == 0 {
 		return true, nil
 	}
@@ -65,7 +65,7 @@ func (rule *Rule) TargetFile(filename string) (bool, error) {
 	return false, nil
 }
 
-func (rule *Rule) TargetFunc(funcName string) (bool, error) {
+func (rule *Rule) IsTargetFunc(funcName string) (bool, error) {
 	if len(rule.FuncPatterns) == 0 {
 		return true, nil
 	}
@@ -81,7 +81,7 @@ func (rule *Rule) TargetFunc(funcName string) (bool, error) {
 	return false, nil
 }
 
-func (rule *Rule) TargetRecv(recvName string) (bool, error) {
+func (rule *Rule) IsTargetRecv(recvName string) (bool, error) {
 	if len(rule.RecvPatterns) == 0 {
 		return true, nil
 	}
@@ -129,13 +129,13 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 }
 
 func (argRules ArgRules) Match(args []*AstArg) ArgRules {
-	unmatchRuleArgs := make(ArgRules, 0, len(argRules))
+	unmatchedRules := make(ArgRules, 0, len(argRules))
 	for _, ruleArg := range argRules {
 		if !ruleArg.Match(args) {
-			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
+			unmatchedRules = append(unmatchedRules, ruleArg)
 		}
 	}
-	return unmatchRuleArgs
+	return unmatchedRules
 }
 
 func (rule *ArgRule) Match(args []*AstArg) bool {

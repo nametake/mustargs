@@ -37,12 +37,7 @@ type AstArg struct {
 	PkgName string
 }
 
-type ImportPackage struct {
-	Pkg     string
-	PkgName string
-}
-
-func ParseAst(expr ast.Expr, index int, ptr bool, packages map[string]string) *AstArg {
+func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]string) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.Ident:
 		return &AstArg{
@@ -65,15 +60,15 @@ func ParseAst(expr ast.Expr, index int, ptr bool, packages map[string]string) *A
 	return nil
 }
 
-func ParseFunc(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
+func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
 			switch typ := list.Type.(type) {
 			case *ast.StarExpr:
-				args = append(args, ParseAst(typ.X, i+j, true, packages))
+				args = append(args, ExtractAstArg(typ.X, i+j, true, packages))
 			default:
-				args = append(args, ParseAst(typ, i+j, false, packages))
+				args = append(args, ExtractAstArg(typ, i+j, false, packages))
 			}
 		}
 	}
@@ -85,7 +80,7 @@ func trimQuotes(str string) string {
 	return replacer.Replace(str)
 }
 
-func ParseImport(specs []ast.Spec) map[string]string {
+func ExtractImportPackages(specs []ast.Spec) map[string]string {
 	packages := make(map[string]string)
 	for _, spec := range specs {
 		switch s := spec.(type) {
@@ -103,7 +98,7 @@ func ParseImport(specs []ast.Spec) map[string]string {
 	return packages
 }
 
-func ParseRecv(recv *ast.FieldList) string {
+func ExtractRecvName(recv *ast.FieldList) string {
 	if recv == nil {
 		return ""
 	}
@@ -135,44 +130,44 @@ func run(pass *analysis.Pass) (any, error) {
 
 		switch n := n.(type) {
 		case *ast.GenDecl:
-			packages = ParseImport(n.Specs)
+			packages = ExtractImportPackages(n.Specs)
 		case *ast.FuncDecl:
 			funcName := n.Name.Name
 			if funcName == "init" || funcName == "main" {
 				return
 			}
-			recvName := ParseRecv(n.Recv)
-			args := ParseFunc(n, packages)
+			recvName := ExtractRecvName(n.Recv)
+			args := ExtractAstArgs(n, packages)
 			for _, rule := range config.Rules {
-				targetFile, err := rule.TargetFile(fileName)
+				isTargetFile, err := rule.IsTargetFile(fileName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())
 					return
 				}
-				if !targetFile {
+				if !isTargetFile {
 					continue
 				}
 
-				targetFunc, err := rule.TargetFunc(funcName)
+				isTargetFunc, err := rule.IsTargetFunc(funcName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())
 					return
 				}
-				if !targetFunc {
+				if !isTargetFunc {
 					continue
 				}
 
-				targetRecv, err := rule.TargetRecv(recvName)
+				isTargetRecv, err := rule.IsTargetRecv(recvName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())
 				}
-				if !targetRecv {
+				if !isTargetRecv {
 					continue
 				}
 
-				failedRuleArgs := rule.Args.Match(args)
-				if len(failedRuleArgs) != 0 {
-					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))
+				unmatchedRules := rule.Args.Match(args)
+				if len(unmatchedRules) != 0 {
+					pass.Reportf(n.Pos(), unmatchedRules.ErrorMsg(n.Name.Name))
 				}
 			}
 		}
