@@ -1,6 +1,7 @@
 package mustargs
 
 import (
+	"fmt"
 	"go/ast"
 
 	"golang.org/x/tools/go/analysis"
@@ -73,6 +74,10 @@ func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
 	return args
 }
 
+func ParseImport(specs []ast.Spec) []*ImportPackage {
+	return nil
+}
+
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
@@ -82,11 +87,15 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	nodeFilter := []ast.Node{
+		(*ast.GenDecl)(nil),
 		(*ast.FuncDecl)(nil),
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
+		var packages []*ImportPackage
 		switch n := n.(type) {
+		case *ast.GenDecl:
+			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
 			args := ParseFunc(n)
 			for _, rule := range config.Rules {
@@ -96,6 +105,7 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 		}
+		fmt.Println(packages)
 	})
 
 	return nil, nil

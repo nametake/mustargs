@@ -31,10 +31,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/pointerarg/config.yaml",
 			patterns:   []string{"pointerarg"},
 		},
-		// {
-		// 	configFile: "testdata/src/pkgtype/config.yaml",
-		// 	patterns:   []string{"pkgtype"},
-		// },
+		{
+			configFile: "testdata/src/pkgtype/config.yaml",
+			patterns:   []string{"pkgtype"},
+		},
 	}
 
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
