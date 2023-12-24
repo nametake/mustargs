@@ -31,9 +31,11 @@ func init() {
 }
 
 type AstArg struct {
-	Index int
-	Type  string
-	Ptr   bool
+	Index   int
+	Type    string
+	Ptr     bool
+	Pkg     string
+	PkgName string
 }
 
 type ImportPackage struct {
@@ -80,8 +82,8 @@ func trimQuotes(str string) string {
 	return replacer.Replace(str)
 }
 
-func ParseImport(specs []ast.Spec) []*ImportPackage {
-	packages := make([]*ImportPackage, 0, len(specs))
+func ParseImport(specs []ast.Spec) map[string]*ImportPackage {
+	packages := make(map[string]*ImportPackage)
 	for _, spec := range specs {
 		switch s := spec.(type) {
 		case *ast.ImportSpec:
@@ -92,10 +94,10 @@ func ParseImport(specs []ast.Spec) []*ImportPackage {
 			} else {
 				name = extractPkgName(pkg)
 			}
-			packages = append(packages, &ImportPackage{
+			packages[name] = &ImportPackage{
 				Pkg:     pkg,
 				PkgName: name,
-			})
+			}
 		}
 	}
 	return packages
@@ -115,7 +117,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		var packages []*ImportPackage
+		var packages map[string]*ImportPackage
 		switch n := n.(type) {
 		case *ast.GenDecl:
 			packages = ParseImport(n.Specs)
@@ -128,8 +130,8 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 		}
-		for _, pkg := range packages {
-			fmt.Printf("%#v\n", pkg)
+		for name, pkg := range packages {
+			fmt.Printf("%s: %#v\n", name, pkg)
 		}
 	})
 
