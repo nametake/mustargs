@@ -6,5 +6,6 @@ rules:
         index: 1
       - type: File
         index: 2
-        pkg: io
+        pkg: os
         pkg_name: stdos
+        ptr: true

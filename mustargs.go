@@ -1,7 +1,6 @@
 package mustargs
 
 import (
-	"fmt"
 	"go/ast"
 	"strings"
 
@@ -43,34 +42,38 @@ type ImportPackage struct {
 	PkgName string
 }
 
-func ParseAst(expr ast.Expr, index int, ptr bool) *AstArg {
+func ParseAst(expr ast.Expr, index int, ptr bool, packages map[string]string) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.Ident:
 		return &AstArg{
-			Index: index,
-			Type:  typ.Name,
-			Ptr:   ptr,
+			Index:   index,
+			Type:    typ.Name,
+			Ptr:     ptr,
+			Pkg:     "",
+			PkgName: "",
 		}
 	case *ast.SelectorExpr:
-		// TODO support pkg
+		name := typ.X.(*ast.Ident).Name
 		return &AstArg{
-			Index: index,
-			Type:  typ.Sel.Name,
-			Ptr:   ptr,
+			Index:   index,
+			Type:    typ.Sel.Name,
+			Ptr:     ptr,
+			Pkg:     packages[name],
+			PkgName: name,
 		}
 	}
 	return nil
 }
 
-func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
+func ParseFunc(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
 			switch typ := list.Type.(type) {
 			case *ast.StarExpr:
-				args = append(args, ParseAst(typ.X, i+j, true))
+				args = append(args, ParseAst(typ.X, i+j, true, packages))
 			default:
-				args = append(args, ParseAst(typ, i+j, false))
+				args = append(args, ParseAst(typ, i+j, false, packages))
 			}
 		}
 	}
@@ -82,8 +85,8 @@ func trimQuotes(str string) string {
 	return replacer.Replace(str)
 }
 
-func ParseImport(specs []ast.Spec) map[string]*ImportPackage {
-	packages := make(map[string]*ImportPackage)
+func ParseImport(specs []ast.Spec) map[string]string {
+	packages := make(map[string]string)
 	for _, spec := range specs {
 		switch s := spec.(type) {
 		case *ast.ImportSpec:
@@ -94,10 +97,7 @@ func ParseImport(specs []ast.Spec) map[string]*ImportPackage {
 			} else {
 				name = extractPkgName(pkg)
 			}
-			packages[name] = &ImportPackage{
-				Pkg:     pkg,
-				PkgName: name,
-			}
+			packages[name] = pkg
 		}
 	}
 	return packages
@@ -116,22 +116,19 @@ func run(pass *analysis.Pass) (any, error) {
 		(*ast.FuncDecl)(nil),
 	}
 
+	var packages map[string]string
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		var packages map[string]*ImportPackage
 		switch n := n.(type) {
 		case *ast.GenDecl:
 			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
-			args := ParseFunc(n)
+			args := ParseFunc(n, packages)
 			for _, rule := range config.Rules {
 				failedRuleArgs := rule.Args.Match(args)
 				if len(failedRuleArgs) != 0 {
 					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))
 				}
 			}
-		}
-		for name, pkg := range packages {
-			fmt.Printf("%s: %#v\n", name, pkg)
 		}
 	})
 
