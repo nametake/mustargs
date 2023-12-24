@@ -34,14 +34,8 @@ func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstAr
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
 			switch typ := list.Type.(type) {
-			case *ast.ArrayType:
-				// TODO Support slcie arg
-				switch expr := typ.Elt.(type) {
-				case *ast.StarExpr:
-					args = append(args, ExtractAstArg(expr.X, i+j, true, packages))
-				case *ast.Ident:
-					args = append(args, ExtractAstArg(expr, i+j, false, packages))
-				}
+			case *ast.MapType, *ast.ArrayType:
+			// TODO support map and array
 			case *ast.StarExpr:
 				args = append(args, ExtractAstArg(typ.X, i+j, true, packages))
 			default:
