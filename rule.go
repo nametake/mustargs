@@ -9,10 +9,11 @@ import (
 type Rule struct {
 	Args               ArgRules `yaml:"args"`
 	FilePatterns       []string `yaml:"file_patterns,omitempty"`
-	IgnoreFilePatterns []string `yaml:"ignore_file_patterns,omitempty"`
 	FuncPatterns       []string `yaml:"func_patterns,omitempty"`
-	IgnoreFuncPatterns []string `yaml:"ignore_func_patterns,omitempty"`
 	RecvPatterns       []string `yaml:"recv_patterns,omitempty"`
+	IgnoreFilePatterns []string `yaml:"ignore_file_patterns,omitempty"`
+	IgnoreFuncPatterns []string `yaml:"ignore_func_patterns,omitempty"`
+	IgnoreRecvPatterns []string `yaml:"ignore_recv_patterns,omitempty"`
 }
 
 func (rule *Rule) IsTargetFile(filename string) (bool, error) {
@@ -84,6 +85,22 @@ func (rule *Rule) IsTargetRecv(recvName string) (bool, error) {
 		return true, nil
 	}
 	for _, pattern := range rule.RecvPatterns {
+		matched, err := regexp.MatchString(pattern, recvName)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (rule *Rule) IsIgnoreRecv(recvName string) (bool, error) {
+	if len(rule.IgnoreRecvPatterns) == 0 {
+		return false, nil
+	}
+	for _, pattern := range rule.IgnoreRecvPatterns {
 		matched, err := regexp.MatchString(pattern, recvName)
 		if err != nil {
 			return false, err

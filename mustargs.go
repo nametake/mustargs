@@ -108,6 +108,15 @@ func run(pass *analysis.Pass) (any, error) {
 					continue
 				}
 
+				isIgnoreRecv, err := rule.IsIgnoreRecv(recvName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+					return
+				}
+				if isIgnoreRecv {
+					continue
+				}
+
 				unmatchedRules := rule.Args.Match(args)
 				if len(unmatchedRules) != 0 {
 					pass.Reportf(n.Pos(), unmatchedRules.ErrorMsg(n.Name.Name))
