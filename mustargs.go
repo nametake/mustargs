@@ -1,6 +1,7 @@
 package mustargs
 
 import (
+	"fmt"
 	"go/ast"
 	"os"
 	"strings"
@@ -64,27 +65,37 @@ func loadConfig(filepath string) (*Config, error) {
 type AstArg struct {
 	Index int
 	Type  string
-	Name  string
+	Ptr   bool
+}
+
+func ParseAst(expr ast.Expr, index int, ptr bool) *AstArg {
+	switch typ := expr.(type) {
+	case *ast.Ident:
+		return &AstArg{
+			Index: index,
+			Type:  typ.Name,
+			Ptr:   ptr,
+		}
+	case *ast.SelectorExpr:
+		// TODO support pkg
+		return &AstArg{
+			Index: index,
+			Type:  typ.Sel.Name,
+			Ptr:   ptr,
+		}
+	}
+	return nil
 }
 
 func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
 	var args []*AstArg
-	for _, li := range funcDecl.Type.Params.List {
-		for index, name := range li.Names {
-			switch typ := li.Type.(type) {
-			case *ast.Ident:
-				args = append(args, &AstArg{
-					Index: index,
-					Type:  typ.Name,
-					Name:  name.Name,
-				})
-			case *ast.SelectorExpr:
-				// TODO support pkg
-				args = append(args, &AstArg{
-					Index: index,
-					Type:  typ.Sel.Name,
-					Name:  name.Name,
-				})
+	for i, list := range funcDecl.Type.Params.List {
+		for j := range list.Names {
+			switch typ := list.Type.(type) {
+			case *ast.StarExpr:
+				args = append(args, ParseAst(typ.X, i+j, true))
+			default:
+				args = append(args, ParseAst(typ, i+j, false))
 			}
 		}
 	}
@@ -133,6 +144,10 @@ func run(pass *analysis.Pass) (any, error) {
 				failedRuleArgs := rule.Args.Match(args)
 				if len(failedRuleArgs) != 0 {
 					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))
+				}
+				fmt.Println("--------")
+				for _, v := range ParseFunc(n) {
+					fmt.Printf("%+v\n", v)
 				}
 				// for _, failedRuleArg := range failedRuleArgs {
 				// 	// pass.Reportf(n.Pos(), "no %s type arg found for func %s", failedRuleArg.Type, n.Name.Name)
