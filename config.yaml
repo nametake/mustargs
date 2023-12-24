@@ -9,9 +9,15 @@ rules:
     file_patterns:
       - usecase/tenant_*.go
       - mysql/tenant_*.go
+    ignore_file_patterns:
+      - .*_gen.go
     func_patterns:
       - Get.*
       - Update.*
+    ignore_func_patterns:
+      - ^New.*
     recv_patterns:
-      - ^TenantUsecase$
-      - ^TenantDB$
+      - ^Tenant.*Usecase$
+      - ^Tenant.*DB$
+    ignore_recv_patterns:
+      - ^TenantDBDebug$

@@ -73,6 +73,15 @@ func run(pass *analysis.Pass) (any, error) {
 					continue
 				}
 
+				isIgnoreFile, err := rule.IsIgnoreFile(fileName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+					return
+				}
+				if isIgnoreFile {
+					continue
+				}
+
 				isTargetFunc, err := rule.IsTargetFunc(funcName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())

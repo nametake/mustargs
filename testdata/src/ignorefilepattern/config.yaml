@@ -1,0 +1,7 @@
+---
+rules:
+  - args:
+      - type: string
+        index: 1
+    ignore_file_patterns:
+      - ignore_.*\.go

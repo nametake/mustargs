@@ -7,10 +7,11 @@ import (
 )
 
 type Rule struct {
-	Args         ArgRules `yaml:"args"`
-	FilePatterns []string `yaml:"file_patterns,omitempty"`
-	FuncPatterns []string `yaml:"func_patterns,omitempty"`
-	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
+	Args               ArgRules `yaml:"args"`
+	FilePatterns       []string `yaml:"file_patterns,omitempty"`
+	IgnoreFilePatterns []string `yaml:"ignore_file_patterns,omitempty"`
+	FuncPatterns       []string `yaml:"func_patterns,omitempty"`
+	RecvPatterns       []string `yaml:"recv_patterns,omitempty"`
 }
 
 func (rule *Rule) IsTargetFile(filename string) (bool, error) {
@@ -18,6 +19,22 @@ func (rule *Rule) IsTargetFile(filename string) (bool, error) {
 		return true, nil
 	}
 	for _, pattern := range rule.FilePatterns {
+		matched, err := regexp.MatchString(pattern, filename)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (rule *Rule) IsIgnoreFile(filename string) (bool, error) {
+	if len(rule.IgnoreFilePatterns) == 0 {
+		return false, nil
+	}
+	for _, pattern := range rule.IgnoreFilePatterns {
 		matched, err := regexp.MatchString(pattern, filename)
 		if err != nil {
 			return false, err
