@@ -54,7 +54,7 @@ type ArgRule struct {
 	Index *int    `yaml:"index,omitempty"`
 	Pkg   *string `yaml:"pkg,omitempty"`
 	Name  *string `yaml:"name,omitempty"`
-	Ptr   *bool   `yaml:"ptr,omitempty"`
+	Ptr   bool    `yaml:"ptr,omitempty"`
 }
 
 type ArgRules []*ArgRule
@@ -63,7 +63,7 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 	ruleErrMsgs := make([]string, 0, len(argRules))
 	for _, rule := range argRules {
 		ptr := ""
-		if rule.Ptr != nil && *rule.Ptr {
+		if rule.Ptr {
 			ptr = "*"
 		}
 		msg := fmt.Sprintf("no %s%s type arg", ptr, rule.Type)
@@ -89,14 +89,15 @@ func (argRules ArgRules) Match(args []*AstArg) ArgRules {
 func (rule *ArgRule) Match(args []*AstArg) bool {
 	for _, arg := range args {
 		if rule.Index != nil {
-			if arg.Index == *rule.Index && arg.Type == rule.Type {
+			if arg.Index == *rule.Index && arg.Type == rule.Type && arg.Ptr == rule.Ptr {
 				return true
 			}
 		} else {
-			if arg.Type == rule.Type {
+			if arg.Type == rule.Type && arg.Ptr == rule.Ptr {
 				return true
 			}
 		}
 	}
+
 	return false
 }
