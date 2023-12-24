@@ -1,6 +1,10 @@
 package mustargs
 
-import "go/ast"
+import (
+	"fmt"
+	"go/ast"
+	"strings"
+)
 
 type Config struct {
 	Rules []*Rule `yaml:"rules"`
@@ -23,9 +27,22 @@ type ArgRule struct {
 
 type ArgRules []*ArgRule
 
-func (ruleArgs ArgRules) Match(args []*ast.Ident) ArgRules {
-	unmatchRuleArgs := make(ArgRules, 0, len(ruleArgs))
-	for _, ruleArg := range ruleArgs {
+func (argRules ArgRules) ErrorMsg(funcName string) string {
+	ruleErrMsgs := make([]string, 0, len(argRules))
+	for _, rule := range argRules {
+		msg := fmt.Sprintf("no %s type arg", rule.Type)
+		if rule.Index != nil {
+			msg += fmt.Sprintf(" at index %d", *rule.Index)
+		}
+		ruleErrMsgs = append(ruleErrMsgs, msg)
+	}
+
+	return fmt.Sprintf("%s found for func %s", strings.Join(ruleErrMsgs, ", "), funcName)
+}
+
+func (argRules ArgRules) Match(args []*ast.Ident) ArgRules {
+	unmatchRuleArgs := make(ArgRules, 0, len(argRules))
+	for _, ruleArg := range argRules {
 		if !ruleArg.Match(args) {
 			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
 		}
@@ -33,14 +50,14 @@ func (ruleArgs ArgRules) Match(args []*ast.Ident) ArgRules {
 	return unmatchRuleArgs
 }
 
-func (r *ArgRule) Match(args []*ast.Ident) bool {
+func (rule *ArgRule) Match(args []*ast.Ident) bool {
 	for i, arg := range args {
-		if r.Index != nil {
-			if i == *r.Index && arg.Name == r.Type {
+		if rule.Index != nil {
+			if i == *rule.Index && arg.Name == rule.Type {
 				return true
 			}
 		} else {
-			if arg.Name == r.Type {
+			if arg.Name == rule.Type {
 				return true
 			}
 		}

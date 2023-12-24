@@ -131,9 +131,12 @@ func run(pass *analysis.Pass) (any, error) {
 			for _, rule := range config.Rules {
 				// TODO pattern check
 				failedRuleArgs := rule.Args.Match(args)
-				for _, failedRuleArg := range failedRuleArgs {
-					pass.Reportf(n.Pos(), "no %s type arg found for func %s", failedRuleArg.Type, n.Name.Name)
+				if len(failedRuleArgs) != 0 {
+					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))
 				}
+				// for _, failedRuleArg := range failedRuleArgs {
+				// 	// pass.Reportf(n.Pos(), "no %s type arg found for func %s", failedRuleArg.Type, n.Name.Name)
+				// }
 			}
 		}
 	})
