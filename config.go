@@ -2,12 +2,44 @@ package mustargs
 
 import (
 	"fmt"
-	"go/ast"
+	"os"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	Rules []*Rule `yaml:"rules"`
+}
+
+func extractPkgName(importPath string) string {
+	parts := strings.Split(importPath, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
+	}
+	return ""
+}
+
+func loadConfig(filepath string) (*Config, error) {
+	file, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+	var config *Config
+	if err := yaml.Unmarshal(file, &config); err != nil {
+		return nil, err
+	}
+
+	for _, rule := range config.Rules {
+		for _, arg := range rule.Args {
+			if arg.Pkg != nil && arg.Name == nil {
+				name := extractPkgName(*arg.Pkg)
+				arg.Name = &name
+			}
+		}
+	}
+
+	return config, nil
 }
 
 type Rule struct {
@@ -44,7 +76,7 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 	return fmt.Sprintf("%s found for func %s", strings.Join(ruleErrMsgs, ", "), funcName)
 }
 
-func (argRules ArgRules) Match(args []*ast.Ident) ArgRules {
+func (argRules ArgRules) Match(args []*AstArg) ArgRules {
 	unmatchRuleArgs := make(ArgRules, 0, len(argRules))
 	for _, ruleArg := range argRules {
 		if !ruleArg.Match(args) {
@@ -54,33 +86,7 @@ func (argRules ArgRules) Match(args []*ast.Ident) ArgRules {
 	return unmatchRuleArgs
 }
 
-func (argRules ArgRules) Match2(args []*AstArg) ArgRules {
-	unmatchRuleArgs := make(ArgRules, 0, len(argRules))
-	for _, ruleArg := range argRules {
-		if !ruleArg.Match2(args) {
-			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
-		}
-	}
-	return unmatchRuleArgs
-
-}
-
-func (rule *ArgRule) Match(args []*ast.Ident) bool {
-	for i, arg := range args {
-		if rule.Index != nil {
-			if i == *rule.Index && arg.Name == rule.Type {
-				return true
-			}
-		} else {
-			if arg.Name == rule.Type {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (rule *ArgRule) Match2(args []*AstArg) bool {
+func (rule *ArgRule) Match(args []*AstArg) bool {
 	for _, arg := range args {
 		if rule.Index != nil {
 			if arg.Index == *rule.Index && arg.Type == rule.Type {

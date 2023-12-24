@@ -1,15 +1,11 @@
 package mustargs
 
 import (
-	"fmt"
 	"go/ast"
-	"os"
-	"strings"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
-	"gopkg.in/yaml.v3"
 )
 
 const doc = "mustargs is ..."
@@ -30,36 +26,6 @@ var (
 
 func init() {
 	Analyzer.Flags.StringVar(&configPath, "config", "", "config file path")
-}
-
-func extractPkgName(importPath string) string {
-	parts := strings.Split(importPath, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
-	}
-	return ""
-}
-
-func loadConfig(filepath string) (*Config, error) {
-	file, err := os.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-	var config *Config
-	if err := yaml.Unmarshal(file, &config); err != nil {
-		return nil, err
-	}
-
-	for _, rule := range config.Rules {
-		for _, arg := range rule.Args {
-			if arg.Pkg != nil && arg.Name == nil {
-				name := extractPkgName(*arg.Pkg)
-				arg.Name = &name
-			}
-		}
-	}
-
-	return config, nil
 }
 
 type AstArg struct {
@@ -102,22 +68,6 @@ func ParseFunc(funcDecl *ast.FuncDecl) []*AstArg {
 	return args
 }
 
-func ParseFuncDecl(funcDecl *ast.FuncDecl) []*ast.Ident {
-	var args []*ast.Ident
-	for _, li := range funcDecl.Type.Params.List {
-		for range li.Names {
-			switch t := li.Type.(type) {
-			case *ast.Ident:
-				args = append(args, t)
-			case *ast.SelectorExpr:
-				// TODO support pkg
-				args = append(args, t.Sel)
-			}
-		}
-	}
-	return args
-}
-
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
@@ -127,31 +77,18 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	nodeFilter := []ast.Node{
-		(*ast.Ident)(nil),
 		(*ast.FuncDecl)(nil),
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		switch n := n.(type) {
-		case *ast.Ident:
-			if n.Name == "gopher" {
-				pass.Reportf(n.Pos(), "identifier is gopher")
-			}
 		case *ast.FuncDecl:
-			args := ParseFuncDecl(n)
+			args := ParseFunc(n)
 			for _, rule := range config.Rules {
-				// TODO pattern check
 				failedRuleArgs := rule.Args.Match(args)
 				if len(failedRuleArgs) != 0 {
 					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))
 				}
-				fmt.Println("--------")
-				for _, v := range ParseFunc(n) {
-					fmt.Printf("%+v\n", v)
-				}
-				// for _, failedRuleArg := range failedRuleArgs {
-				// 	// pass.Reportf(n.Pos(), "no %s type arg found for func %s", failedRuleArg.Type, n.Name.Name)
-				// }
 			}
 		}
 	})
