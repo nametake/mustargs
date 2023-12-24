@@ -3,6 +3,7 @@ package mustargs
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -46,6 +47,22 @@ type Rule struct {
 	FilePatterns []string `yaml:"file_patterns,omitempty"`
 	FuncPatterns []string `yaml:"func_patterns,omitempty"`
 	RecvPatterns []string `yaml:"recv_patterns,omitempty"`
+}
+
+func (rule *Rule) TargetFile(filename string) (bool, error) {
+	if len(rule.FilePatterns) == 0 {
+		return true, nil
+	}
+	for _, pattern := range rule.FilePatterns {
+		matched, err := regexp.MatchString(pattern, filename)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 type ArgRule struct {

@@ -118,12 +118,23 @@ func run(pass *analysis.Pass) (any, error) {
 
 	var packages map[string]string
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
+		fileName := pass.Fset.File(n.Pos()).Name()
+
 		switch n := n.(type) {
 		case *ast.GenDecl:
 			packages = ParseImport(n.Specs)
 		case *ast.FuncDecl:
 			args := ParseFunc(n, packages)
 			for _, rule := range config.Rules {
+				target, err := rule.TargetFile(fileName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+					return
+				}
+				if !target {
+					continue
+				}
+
 				failedRuleArgs := rule.Args.Match(args)
 				if len(failedRuleArgs) != 0 {
 					pass.Reportf(n.Pos(), failedRuleArgs.ErrorMsg(n.Name.Name))

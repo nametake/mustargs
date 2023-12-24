@@ -4,4 +4,4 @@ rules:
       - type: string
         index: 1
     file_patterns:
-      - ignore_*.go
+      - target_.*\.go
