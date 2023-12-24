@@ -11,6 +11,7 @@ type Rule struct {
 	FilePatterns       []string `yaml:"file_patterns,omitempty"`
 	IgnoreFilePatterns []string `yaml:"ignore_file_patterns,omitempty"`
 	FuncPatterns       []string `yaml:"func_patterns,omitempty"`
+	IgnoreFuncPatterns []string `yaml:"ignore_func_patterns,omitempty"`
 	RecvPatterns       []string `yaml:"recv_patterns,omitempty"`
 }
 
@@ -30,12 +31,12 @@ func (rule *Rule) IsTargetFile(filename string) (bool, error) {
 	return false, nil
 }
 
-func (rule *Rule) IsIgnoreFile(filename string) (bool, error) {
+func (rule *Rule) IsIgnoreFile(fileName string) (bool, error) {
 	if len(rule.IgnoreFilePatterns) == 0 {
 		return false, nil
 	}
 	for _, pattern := range rule.IgnoreFilePatterns {
-		matched, err := regexp.MatchString(pattern, filename)
+		matched, err := regexp.MatchString(pattern, fileName)
 		if err != nil {
 			return false, err
 		}
@@ -51,6 +52,22 @@ func (rule *Rule) IsTargetFunc(funcName string) (bool, error) {
 		return true, nil
 	}
 	for _, pattern := range rule.FuncPatterns {
+		matched, err := regexp.MatchString(pattern, funcName)
+		if err != nil {
+			return false, err
+		}
+		if matched {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (rule *Rule) IsIgnoreFunc(funcName string) (bool, error) {
+	if len(rule.IgnoreFuncPatterns) == 0 {
+		return false, nil
+	}
+	for _, pattern := range rule.IgnoreFuncPatterns {
 		matched, err := regexp.MatchString(pattern, funcName)
 		if err != nil {
 			return false, err

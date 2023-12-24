@@ -91,6 +91,15 @@ func run(pass *analysis.Pass) (any, error) {
 					continue
 				}
 
+				isIgnoreFunc, err := rule.IsIgnoreFunc(funcName)
+				if err != nil {
+					pass.Reportf(n.Pos(), err.Error())
+					return
+				}
+				if isIgnoreFunc {
+					continue
+				}
+
 				isTargetRecv, err := rule.IsTargetRecv(recvName)
 				if err != nil {
 					pass.Reportf(n.Pos(), err.Error())

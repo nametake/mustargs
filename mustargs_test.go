@@ -55,6 +55,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/ignorefilepattern/config.yaml",
 			patterns:   []string{"ignorefilepattern"},
 		},
+		{
+			configFile: "testdata/src/ignorefuncpattern/config.yaml",
+			patterns:   []string{"ignorefuncpattern"},
+		},
 	}
 
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)

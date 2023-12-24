@@ -1,0 +1,7 @@
+---
+rules:
+  - args:
+      - type: string
+        index: 1
+    ignore_func_patterns:
+      - ^Ignore.*
