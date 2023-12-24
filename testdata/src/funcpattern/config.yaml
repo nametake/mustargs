@@ -1,0 +1,7 @@
+---
+rules:
+  - args:
+      - type: string
+        index: 1
+    func_patterns:
+      - ^Target.*
