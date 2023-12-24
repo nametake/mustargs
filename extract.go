@@ -1,6 +1,7 @@
 package mustargs
 
 import (
+	"fmt"
 	"go/ast"
 	"strings"
 )
@@ -25,7 +26,7 @@ func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]strin
 			PkgName: name,
 		}
 	}
-	return nil
+	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
 func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
@@ -33,6 +34,14 @@ func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstAr
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
 			switch typ := list.Type.(type) {
+			case *ast.ArrayType:
+				// TODO Support slcie arg
+				switch expr := typ.Elt.(type) {
+				case *ast.StarExpr:
+					args = append(args, ExtractAstArg(expr.X, i+j, true, packages))
+				case *ast.Ident:
+					args = append(args, ExtractAstArg(expr, i+j, false, packages))
+				}
 			case *ast.StarExpr:
 				args = append(args, ExtractAstArg(typ.X, i+j, true, packages))
 			default:
