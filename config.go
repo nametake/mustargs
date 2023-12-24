@@ -54,6 +54,17 @@ func (argRules ArgRules) Match(args []*ast.Ident) ArgRules {
 	return unmatchRuleArgs
 }
 
+func (argRules ArgRules) Match2(args []*AstArg) ArgRules {
+	unmatchRuleArgs := make(ArgRules, 0, len(argRules))
+	for _, ruleArg := range argRules {
+		if !ruleArg.Match2(args) {
+			unmatchRuleArgs = append(unmatchRuleArgs, ruleArg)
+		}
+	}
+	return unmatchRuleArgs
+
+}
+
 func (rule *ArgRule) Match(args []*ast.Ident) bool {
 	for i, arg := range args {
 		if rule.Index != nil {
@@ -62,6 +73,21 @@ func (rule *ArgRule) Match(args []*ast.Ident) bool {
 			}
 		} else {
 			if arg.Name == rule.Type {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (rule *ArgRule) Match2(args []*AstArg) bool {
+	for _, arg := range args {
+		if rule.Index != nil {
+			if arg.Index == *rule.Index && arg.Type == rule.Type {
+				return true
+			}
+		} else {
+			if arg.Type == rule.Type {
 				return true
 			}
 		}
