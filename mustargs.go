@@ -2,6 +2,7 @@ package mustargs
 
 import (
 	"go/ast"
+	"go/token"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -55,7 +56,9 @@ func run(pass *analysis.Pass) (any, error) {
 
 		switch n := n.(type) {
 		case *ast.GenDecl:
-			packages = ExtractImportPackages(n.Specs)
+			if n.Tok == token.IMPORT {
+				packages = ExtractImportPackages(n.Specs)
+			}
 		case *ast.FuncDecl:
 			funcName := n.Name.Name
 			if funcName == "init" || funcName == "main" {

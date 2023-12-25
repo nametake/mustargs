@@ -1,0 +1,29 @@
+---
+rules:
+  - args:
+      - type: Context
+        pkg: context
+        index: 0
+      - type: TenantID
+        index: 1
+    recv_patterns:
+      - ^Usecase$
+  - args:
+      - type: Context
+        pkg: context
+        index: 0
+      - type: Tx
+        pkg: database/sql
+        index: 1
+        ptr: true
+    recv_patterns:
+      - ^DB$
+  - args:
+      - type: int
+        index: -1
+      - type: int
+        index: -2
+    recv_patterns:
+      - ^DB$
+    func_patterns:
+      - ^Get.*s$

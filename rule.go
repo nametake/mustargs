@@ -131,6 +131,7 @@ func (rule *ArgRule) Match(args []*AstArg) bool {
 			return true
 		}
 	}
+
 	return false
 }
 func (rule *ArgRule) matchIndex(index, argsLen int) bool {

@@ -67,6 +67,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/minusindex/config.yaml",
 			patterns:   []string{"minusindex"},
 		},
+		{
+			configFile: "testdata/src/example/config.yaml",
+			patterns:   []string{"example"},
+		},
 	}
 
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
