@@ -1,0 +1,5 @@
+---
+rules:
+  - args:
+      - type: int
+        index: -1

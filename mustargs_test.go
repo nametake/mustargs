@@ -63,6 +63,10 @@ func TestAnalyzer(t *testing.T) {
 			configFile: "testdata/src/ignorerecvpattern/config.yaml",
 			patterns:   []string{"ignorerecvpattern"},
 		},
+		{
+			configFile: "testdata/src/minusindex/config.yaml",
+			patterns:   []string{"minusindex"},
+		},
 	}
 
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)

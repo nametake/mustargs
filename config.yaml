@@ -25,8 +25,8 @@ rules:
     # Each pattern is an AND condition, and the list of patterns is an OR condition.
     #
     # file_patterns: # File patterns.
-    #   - usecase/tenant_*.go
-    #   - mysql/tenant_*.go
+    #   - usecase/tenant_.*.go
+    #   - mysql/tenant_.*.go
     # ignore_file_patterns: # Patterns to exclude files.
     #   - .*_gen.go
     # func_patterns: # Function name patterns.
