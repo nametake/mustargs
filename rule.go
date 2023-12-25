@@ -121,8 +121,17 @@ type ArgRule struct {
 }
 
 func (rule *ArgRule) Match(args []*AstArg) bool {
-	for _, arg := range args {
-		if rule.matchType(arg) && rule.matchIndex(arg) && rule.matchPtr(arg) && rule.matchPkg(arg) {
+	argsLen := len(args)
+	for i, arg := range args {
+		if rule.Index != nil {
+			if *rule.Index >= 0 && i != *rule.Index {
+				continue
+			}
+			if *rule.Index < 0 && (i-argsLen) != *rule.Index {
+				continue
+			}
+		}
+		if rule.matchType(arg) && rule.matchPtr(arg) && rule.matchPkg(arg) {
 			return true
 		}
 	}
@@ -133,8 +142,11 @@ func (rule *ArgRule) matchType(arg *AstArg) bool {
 	return arg.Type == rule.Type
 }
 
-func (rule *ArgRule) matchIndex(arg *AstArg) bool {
+func (rule *ArgRule) matchIndex(arg *AstArg, argsLen int) bool {
 	if rule.Index != nil {
+		if *rule.Index < 0 {
+			return (arg.Index - argsLen) == *rule.Index
+		}
 		return arg.Index == *rule.Index
 	}
 	return true

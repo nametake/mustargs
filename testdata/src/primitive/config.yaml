@@ -4,6 +4,3 @@ rules:
       - type: string
   - args:
       - type: int
-  # - args:
-  #     - type: string
-  #       is_slice: true
