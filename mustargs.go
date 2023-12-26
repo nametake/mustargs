@@ -35,6 +35,7 @@ type AstArg struct {
 	Ptr     bool
 	Pkg     string
 	PkgName string
+	IsArray bool
 }
 
 func run(pass *analysis.Pass) (any, error) {

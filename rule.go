@@ -118,6 +118,7 @@ type ArgRule struct {
 	Pkg     string `yaml:"pkg,omitempty"`
 	PkgName string `yaml:"pkg_name,omitempty"`
 	Ptr     bool   `yaml:"ptr,omitempty"`
+	IsArray bool   `yaml:"is_array,omitempty"`
 }
 
 func (rule *ArgRule) Match(args []*AstArg) bool {

@@ -29,17 +29,25 @@ func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]strin
 	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
+func StarCheck(expr ast.Expr, index int, packages map[string]string) *AstArg {
+	switch typ := expr.(type) {
+	case *ast.StarExpr:
+		return ExtractAstArg(typ.X, index, true, packages)
+	}
+	return ExtractAstArg(expr, index, false, packages)
+}
+
 func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
 			switch typ := list.Type.(type) {
-			case *ast.MapType, *ast.ArrayType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
-			// TODO support
-			case *ast.StarExpr:
-				args = append(args, ExtractAstArg(typ.X, i+j, true, packages))
+			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
+				// TODO support
+			case *ast.ArrayType:
+				args = append(args, StarCheck(typ.Elt, i+j, packages))
 			default:
-				args = append(args, ExtractAstArg(typ, i+j, false, packages))
+				args = append(args, StarCheck(typ, i+j, packages))
 			}
 		}
 	}

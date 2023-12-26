@@ -68,6 +68,10 @@ func TestAnalyzer(t *testing.T) {
 			patterns:   []string{"minusindex"},
 		},
 		{
+			configFile: "testdata/src/arrayarg/config.yaml",
+			patterns:   []string{"arrayarg"},
+		},
+		{
 			configFile: "testdata/src/example/config.yaml",
 			patterns:   []string{"example"},
 		},

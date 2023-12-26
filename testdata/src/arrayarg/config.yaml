@@ -1,0 +1,11 @@
+---
+rules:
+  - args:
+      - type: string
+        index: 0
+        is_array: true
+      - type: File
+        pkg: os
+        index: 1
+        ptr: true
+        is_array: true
