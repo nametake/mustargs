@@ -26,4 +26,4 @@ rules:
     recv_patterns:
       - ^DB$
     func_patterns:
-      - ^Get.*s$
+      - ^GetMultiple.*

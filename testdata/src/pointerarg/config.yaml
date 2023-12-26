@@ -3,3 +3,6 @@ rules:
   - args:
       - type: string
         ptr: true
+      - type: Tx
+        pkg: database/sql
+        ptr: true
