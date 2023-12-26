@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]string) *AstArg {
+// TODO Refactor
+func ExtractAstArg(expr ast.Expr, index int, ptr, isArray bool, packages map[string]string) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.Ident:
 		return &AstArg{
@@ -15,6 +16,7 @@ func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]strin
 			Ptr:     ptr,
 			Pkg:     "",
 			PkgName: "",
+			IsArray: isArray,
 		}
 	case *ast.SelectorExpr:
 		name := typ.X.(*ast.Ident).Name
@@ -24,19 +26,22 @@ func ExtractAstArg(expr ast.Expr, index int, ptr bool, packages map[string]strin
 			Ptr:     ptr,
 			Pkg:     packages[name],
 			PkgName: name,
+			IsArray: isArray,
 		}
 	}
 	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
-func StarCheck(expr ast.Expr, index int, packages map[string]string) *AstArg {
+// TODO Refactor
+func StarCheck(expr ast.Expr, index int, isArray bool, packages map[string]string) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.StarExpr:
-		return ExtractAstArg(typ.X, index, true, packages)
+		return ExtractAstArg(typ.X, index, true, isArray, packages)
 	}
-	return ExtractAstArg(expr, index, false, packages)
+	return ExtractAstArg(expr, index, false, isArray, packages)
 }
 
+// TODO Refactor
 func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
@@ -45,9 +50,9 @@ func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstAr
 			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
 				// TODO support
 			case *ast.ArrayType:
-				args = append(args, StarCheck(typ.Elt, i+j, packages))
+				args = append(args, StarCheck(typ.Elt, i+j, true, packages))
 			default:
-				args = append(args, StarCheck(typ, i+j, packages))
+				args = append(args, StarCheck(typ, i+j, false, packages))
 			}
 		}
 	}

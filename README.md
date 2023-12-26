@@ -42,6 +42,7 @@ rules:
         pkg_name: dm
         # 'ptr' specifies whether the argument type is a pointer.
         ptr: true
+        is_array: true
     # These are the patterns for the functions targeted by the rule.
     # Multiple patterns can be specified as a list.
     # Patterns support regular expressions.
@@ -73,6 +74,5 @@ The following argument types are not supported:
 - `map`
 - `func`
 - `chan`
-- `slice`
 - `interface`
 - `ellipsis`

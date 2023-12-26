@@ -128,7 +128,7 @@ func (rule *ArgRule) Match(args []*AstArg) bool {
 			continue
 		}
 
-		if rule.matchType(arg) && rule.matchPtr(arg) && rule.matchPkg(arg) {
+		if rule.matchType(arg) && rule.matchPtr(arg) && rule.matchPkg(arg) && rule.matchIsArray(arg) {
 			return true
 		}
 	}
@@ -160,6 +160,10 @@ func (rule *ArgRule) matchPkg(arg *AstArg) bool {
 	return true
 }
 
+func (rule *ArgRule) matchIsArray(arg *AstArg) bool {
+	return arg.IsArray == rule.IsArray
+}
+
 type ArgRules []*ArgRule
 
 func (argRules ArgRules) Match(args []*AstArg) ArgRules {
@@ -175,6 +179,10 @@ func (argRules ArgRules) Match(args []*AstArg) ArgRules {
 func (argRules ArgRules) ErrorMsg(funcName string) string {
 	ruleErrMsgs := make([]string, 0, len(argRules))
 	for _, rule := range argRules {
+		array := ""
+		if rule.IsArray {
+			array = "[]"
+		}
 		ptr := ""
 		if rule.Ptr {
 			ptr = "*"
@@ -183,7 +191,7 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 		if rule.PkgName != "" {
 			pkgName = rule.PkgName + "."
 		}
-		msg := fmt.Sprintf("no %s%s%s type arg", ptr, pkgName, rule.Type)
+		msg := fmt.Sprintf("no %s%s%s%s type arg", array, ptr, pkgName, rule.Type)
 		if rule.Index != nil {
 			msg += fmt.Sprintf(" at index %d", *rule.Index)
 		}
