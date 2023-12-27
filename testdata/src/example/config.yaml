@@ -15,7 +15,7 @@ rules:
       - type: Tx
         pkg: database/sql
         index: 1
-        ptr: true
+        is_ptr: true
     recv_patterns:
       - ^DB$
   - args:

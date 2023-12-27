@@ -2,7 +2,7 @@
 rules:
   - args:
       - type: string
-        ptr: true
+        is_ptr: true
       - type: Tx
         pkg: database/sql
-        ptr: true
+        is_ptr: true

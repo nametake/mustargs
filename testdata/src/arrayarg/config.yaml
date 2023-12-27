@@ -7,5 +7,5 @@ rules:
       - type: File
         pkg: os
         index: 1
-        ptr: true
+        is_ptr: true
         is_array: true

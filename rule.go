@@ -117,7 +117,7 @@ type ArgRule struct {
 	Index   *int   `yaml:"index,omitempty"`
 	Pkg     string `yaml:"pkg,omitempty"`
 	PkgName string `yaml:"pkg_name,omitempty"`
-	Ptr     bool   `yaml:"ptr,omitempty"`
+	IsPtr   bool   `yaml:"is_ptr,omitempty"`
 	IsArray bool   `yaml:"is_array,omitempty"`
 }
 
@@ -150,7 +150,7 @@ func (rule *ArgRule) matchType(arg *AstArg) bool {
 }
 
 func (rule *ArgRule) matchPtr(arg *AstArg) bool {
-	return arg.Ptr == rule.Ptr
+	return arg.IsPtr == rule.IsPtr
 }
 
 func (rule *ArgRule) matchPkg(arg *AstArg) bool {
@@ -184,7 +184,7 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 			array = "[]"
 		}
 		ptr := ""
-		if rule.Ptr {
+		if rule.IsPtr {
 			ptr = "*"
 		}
 		pkgName := ""

@@ -29,15 +29,6 @@ func init() {
 	Analyzer.Flags.StringVar(&configPath, "config", "", "config file path")
 }
 
-type AstArg struct {
-	Index   int
-	Type    string
-	Ptr     bool
-	Pkg     string
-	PkgName string
-	IsArray bool
-}
-
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
@@ -66,7 +57,7 @@ func run(pass *analysis.Pass) (any, error) {
 				return
 			}
 			recvName := ExtractRecvName(n.Recv)
-			args := ExtractAstArgs(n, packages)
+			args := NewAstArgs(n, packages)
 			for _, rule := range config.Rules {
 				isTargetFile, err := rule.IsTargetFile(fileName)
 				if err != nil {
