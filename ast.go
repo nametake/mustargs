@@ -6,6 +6,54 @@ import (
 	"strings"
 )
 
+type AstArg struct {
+	Index   int
+	Type    string
+	Ptr     bool
+	Pkg     string
+	PkgName string
+	IsArray bool
+}
+
+type Option func(*AstArg)
+
+func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
+	astArg := &AstArg{
+		Type:    typ,
+		PkgName: pkgName,
+	}
+
+	for _, option := range options {
+		option(astArg)
+	}
+
+	return astArg
+}
+
+func WithIndex(index int) Option {
+	return func(arg *AstArg) {
+		arg.Index = index
+	}
+}
+
+func WithPtr() Option {
+	return func(arg *AstArg) {
+		arg.Ptr = true
+	}
+}
+
+func WithPkg(packages map[string]string) Option {
+	return func(arg *AstArg) {
+		arg.Pkg = packages[arg.PkgName]
+	}
+}
+
+func WithIsArray() Option {
+	return func(arg *AstArg) {
+		arg.IsArray = true
+	}
+}
+
 func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
