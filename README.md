@@ -115,7 +115,7 @@ type Usecase struct{}
 func (u *Usecase) GetUser(ctx context.Context, tenantID TenantID, userID string) {
 }
 
-func (u *Usecase) GetPost(ctx context.Context, userID string) { // INVALID
+func (u *Usecase) GetPost(ctx context.Context, userID string) { // ERROR
 }
 
 type DB struct{}
@@ -123,13 +123,13 @@ type DB struct{}
 func (db *DB) GetUser(ctx context.Context, tx *sql.Tx, tenantID TenantID, userID string) {
 }
 
-func (db *DB) GetPost(ctx context.Context, tenantID TenantID, postID string) { // INVALID
+func (db *DB) GetPost(ctx context.Context, tenantID TenantID, postID string) { // ERROR
 }
 
 func (db *DB) GetMultipleUsers(ctx context.Context, tx *sql.Tx, tenantID TenantID, limit, offset int) {
 }
 
-func (db *DB) GetMultiplePosts(ctx context.Context, tx *sql.Tx, tenantID TenantID) { // INVALID
+func (db *DB) GetMultiplePosts(ctx context.Context, tx *sql.Tx, tenantID TenantID) { // ERROR
 }
 ```
 
