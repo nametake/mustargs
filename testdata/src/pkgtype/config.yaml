@@ -8,4 +8,4 @@ rules:
         index: 2
         pkg: os
         pkg_name: stdos
-        ptr: true
+        is_ptr: true

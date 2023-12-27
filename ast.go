@@ -9,9 +9,9 @@ import (
 type AstArg struct {
 	Index   int
 	Type    string
-	Ptr     bool
 	Pkg     string
 	PkgName string
+	IsPtr   bool
 	IsArray bool
 }
 
@@ -36,9 +36,9 @@ func WithIndex(index int) Option {
 	}
 }
 
-func WithPtr() Option {
+func WithIsPtr() Option {
 	return func(arg *AstArg) {
-		arg.Ptr = true
+		arg.IsPtr = true
 	}
 }
 
@@ -79,7 +79,7 @@ func checkLiteralExpr(expr ast.Expr, options ...Option) *AstArg {
 func checkStarExpr(expr ast.Expr, options ...Option) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.StarExpr:
-		return checkSelectorExpr(typ.X, append(options, WithPtr())...)
+		return checkSelectorExpr(typ.X, append(options, WithIsPtr())...)
 	}
 	return checkSelectorExpr(expr, options...)
 }

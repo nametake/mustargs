@@ -17,8 +17,10 @@ rules:
         # 'pkg_name' is used when giving a name to the imported package.
         # If not specified, it will follow the default import rules.
         pkg_name: dm
-        # 'ptr' specifies whether the argument type is a pointer.
-        ptr: true
+        # 'is_ptr' specifies whether the argument type is a pointer.
+        is_ptr: true
+        # 'is_array' specifies whether the argument type is a array or slice.
+        # is_array: true
     # These are the patterns for the functions targeted by the rule.
     # Multiple patterns can be specified as a list.
     # Patterns support regular expressions.

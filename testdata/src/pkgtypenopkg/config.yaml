@@ -5,4 +5,4 @@ rules:
         index: 1
       - type: File
         index: 2
-        ptr: true
+        is_ptr: true
