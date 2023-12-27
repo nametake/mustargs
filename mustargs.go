@@ -46,9 +46,9 @@ func WithIndex(index int) Option {
 	}
 }
 
-func WithPtr(ptr bool) Option {
+func WithPtr() Option {
 	return func(arg *AstArg) {
-		arg.Ptr = ptr
+		arg.Ptr = true
 	}
 }
 
@@ -58,13 +58,13 @@ func WithPkg(packages map[string]string) Option {
 	}
 }
 
-func WithIsArray(isArray bool) Option {
+func WithIsArray() Option {
 	return func(arg *AstArg) {
-		arg.IsArray = isArray
+		arg.IsArray = true
 	}
 }
 
-func NewAstArgs(typ, pkgName string, options ...Option) *AstArg {
+func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
 	astArg := &AstArg{
 		Type:    typ,
 		PkgName: pkgName,
@@ -105,7 +105,7 @@ func run(pass *analysis.Pass) (any, error) {
 				return
 			}
 			recvName := ExtractRecvName(n.Recv)
-			args := ExtractAstArgs(n, packages)
+			args := NewAstArgs(n, packages)
 			for _, rule := range config.Rules {
 				isTargetFile, err := rule.IsTargetFile(fileName)
 				if err != nil {

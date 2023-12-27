@@ -6,57 +6,45 @@ import (
 	"strings"
 )
 
-// TODO Refactor
-func ExtractAstArg(expr ast.Expr, index int, ptr, isArray bool, packages map[string]string) *AstArg {
+func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
+	var args []*AstArg
+	for i, list := range funcDecl.Type.Params.List {
+		for j := range list.Names {
+			args = append(args, checkLiteralExpr(list.Type, WithIndex(i+j), WithPkg(packages)))
+		}
+	}
+	return args
+}
+
+func checkLiteralExpr(expr ast.Expr, options ...Option) *AstArg {
 	switch typ := expr.(type) {
-	case *ast.Ident:
-		return &AstArg{
-			Index:   index,
-			Type:    typ.Name,
-			Ptr:     ptr,
-			Pkg:     "",
-			PkgName: "",
-			IsArray: isArray,
-		}
-	case *ast.SelectorExpr:
-		name := typ.X.(*ast.Ident).Name
-		return &AstArg{
-			Index:   index,
-			Type:    typ.Sel.Name,
-			Ptr:     ptr,
-			Pkg:     packages[name],
-			PkgName: name,
-			IsArray: isArray,
-		}
+	case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
+		// TODO support
+	case *ast.ArrayType:
+		return checkStarExpr(typ.Elt, append(options, WithIsArray())...)
+	default:
+		return checkStarExpr(typ, options...)
 	}
 	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
-// TODO Refactor
-func StarCheck(expr ast.Expr, index int, isArray bool, packages map[string]string) *AstArg {
+func checkStarExpr(expr ast.Expr, options ...Option) *AstArg {
 	switch typ := expr.(type) {
 	case *ast.StarExpr:
-		return ExtractAstArg(typ.X, index, true, isArray, packages)
+		return checkSelectorExpr(typ.X, append(options, WithPtr())...)
 	}
-	return ExtractAstArg(expr, index, false, isArray, packages)
+	return checkSelectorExpr(expr, options...)
 }
 
-// TODO Refactor
-func ExtractAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
-	var args []*AstArg
-	for i, list := range funcDecl.Type.Params.List {
-		for j := range list.Names {
-			switch typ := list.Type.(type) {
-			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
-				// TODO support
-			case *ast.ArrayType:
-				args = append(args, StarCheck(typ.Elt, i+j, true, packages))
-			default:
-				args = append(args, StarCheck(typ, i+j, false, packages))
-			}
-		}
+func checkSelectorExpr(expr ast.Expr, options ...Option) *AstArg {
+	switch typ := expr.(type) {
+	case *ast.Ident:
+		return NewAstArg(typ.Name, "", options...)
+	case *ast.SelectorExpr:
+		name := typ.X.(*ast.Ident).Name
+		return NewAstArg(typ.Sel.Name, name, options...)
 	}
-	return args
+	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
 func extractPkgName(importPath string) string {
