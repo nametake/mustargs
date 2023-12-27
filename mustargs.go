@@ -38,6 +38,45 @@ type AstArg struct {
 	IsArray bool
 }
 
+type Option func(*AstArg)
+
+func WithIndex(index int) Option {
+	return func(arg *AstArg) {
+		arg.Index = index
+	}
+}
+
+func WithPtr(ptr bool) Option {
+	return func(arg *AstArg) {
+		arg.Ptr = ptr
+	}
+}
+
+func WithPkg(packages map[string]string) Option {
+	return func(arg *AstArg) {
+		arg.Pkg = packages[arg.PkgName]
+	}
+}
+
+func WithIsArray(isArray bool) Option {
+	return func(arg *AstArg) {
+		arg.IsArray = isArray
+	}
+}
+
+func NewAstArgs(typ, pkgName string, options ...Option) *AstArg {
+	astArg := &AstArg{
+		Type:    typ,
+		PkgName: pkgName,
+	}
+
+	for _, option := range options {
+		option(astArg)
+	}
+
+	return astArg
+}
+
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
