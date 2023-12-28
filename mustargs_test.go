@@ -72,6 +72,10 @@ func TestAnalyzer(t *testing.T) {
 			patterns:   []string{"arrayarg"},
 		},
 		{
+			configFile: "testdata/src/unsupporttype/config.yaml",
+			patterns:   []string{"unsupporttype"},
+		},
+		{
 			configFile: "testdata/src/example/config.yaml",
 			patterns:   []string{"example"},
 		},

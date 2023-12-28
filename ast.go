@@ -58,22 +58,17 @@ func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 	var args []*AstArg
 	for i, list := range funcDecl.Type.Params.List {
 		for j := range list.Names {
-			args = append(args, checkLiteralExpr(list.Type, WithIndex(i+j), WithPkg(packages)))
+			switch typ := list.Type.(type) {
+			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
+				// TODO support
+			case *ast.ArrayType:
+				args = append(args, checkStarExpr(typ.Elt, WithIndex(i+j), WithPkg(packages), WithIsArray()))
+			default:
+				args = append(args, checkStarExpr(typ, WithIndex(i+j), WithPkg(packages)))
+			}
 		}
 	}
 	return args
-}
-
-func checkLiteralExpr(expr ast.Expr, options ...Option) *AstArg {
-	switch typ := expr.(type) {
-	case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
-		// TODO support
-	case *ast.ArrayType:
-		return checkStarExpr(typ.Elt, append(options, WithIsArray())...)
-	default:
-		return checkStarExpr(typ, options...)
-	}
-	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
 func checkStarExpr(expr ast.Expr, options ...Option) *AstArg {
