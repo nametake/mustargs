@@ -27,8 +27,8 @@ rules:
   # These are the target arguments. Multiple configurations are possible within each rule.
   # An error will occur if not all argument rules are followed.
   - args:
-      # 'type' is the name of the type that should be included in the function's arguments.
-      # This is a required field.
+        # 'type' is the name of the type that should be included in the function's arguments.
+        # This is a required field.
       - type: Context
         # 'index' is the position of the argument. 0 represents the first argument of the function.
         # If not specified, it will not result in an error if included anywhere.
