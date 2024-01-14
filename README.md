@@ -38,9 +38,6 @@ rules:
       - type: TenantID
         index: 1
         pkg: github.com/nametake/mustargs/domain
-        # 'pkg_name' is used when giving a name to the imported package.
-        # If not specified, it will follow the default import rules.
-        pkg_name: dm
         # 'is_ptr' specifies whether the argument type is a pointer.
         is_ptr: true
         # 'is_array' specifies whether the argument type is a array or slice.
@@ -50,8 +47,8 @@ rules:
     # Patterns support regular expressions.
     # Each pattern is an AND condition, and the list of patterns is an OR condition.
     file_patterns: # File patterns.
-      - usecase/tenant_*.go
-      - mysql/tenant_*.go
+      - usecase/tenant_.*.go
+      - mysql/tenant_.*.go
     ignore_file_patterns: # Patterns to ignore files.
       - .*_gen.go
     func_patterns: # Function name patterns.
