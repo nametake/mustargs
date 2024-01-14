@@ -20,13 +20,5 @@ func loadConfig(filepath string) (*Config, error) {
 		return nil, err
 	}
 
-	for _, rule := range config.Rules {
-		for _, arg := range rule.Args {
-			if arg.PkgName == "" {
-				arg.PkgName = extractPkgName(arg.Pkg)
-			}
-		}
-	}
-
 	return config, nil
 }

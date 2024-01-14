@@ -2,14 +2,12 @@ package mustargs
 
 import (
 	"go/types"
-	"strings"
 )
 
 type astArg struct {
 	Index   int
 	Type    string
 	Pkg     string
-	PkgName string
 	IsPtr   bool
 	IsArray bool
 }
@@ -119,12 +117,4 @@ func withIsArray() option {
 	return func(arg *astArg) {
 		arg.IsArray = true
 	}
-}
-
-func extractPkgName(importPath string) string {
-	parts := strings.Split(importPath, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
-	}
-	return ""
 }

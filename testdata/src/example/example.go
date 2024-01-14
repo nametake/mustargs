@@ -20,7 +20,7 @@ type DB struct{}
 func (db *DB) GetUser(ctx context.Context, tx *sql.Tx, tenantID TenantID, userID string) {
 }
 
-func (db *DB) GetPost(ctx context.Context, tenantID TenantID, postID string) { // want "no \\*sql.Tx type arg at index 1 found for func GetPost"
+func (db *DB) GetPost(ctx context.Context, tenantID TenantID, postID string) { // want "no \\*database/sql.Tx type arg at index 1 found for func GetPost"
 }
 
 func (db *DB) GetMultipleUsers(ctx context.Context, tx *sql.Tx, tenantID TenantID, limit, offset int) {

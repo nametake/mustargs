@@ -116,7 +116,6 @@ type ArgRule struct {
 	Type    string `yaml:"type"`
 	Index   *int   `yaml:"index,omitempty"`
 	Pkg     string `yaml:"pkg,omitempty"`
-	PkgName string `yaml:"pkg_name,omitempty"`
 	IsPtr   bool   `yaml:"is_ptr,omitempty"`
 	IsArray bool   `yaml:"is_array,omitempty"`
 }
@@ -188,8 +187,8 @@ func (argRules ArgRules) ErrorMsg(funcName string) string {
 			ptr = "*"
 		}
 		pkgName := ""
-		if rule.PkgName != "" {
-			pkgName = rule.PkgName + "."
+		if rule.Pkg != "" {
+			pkgName = rule.Pkg + "."
 		}
 		msg := fmt.Sprintf("no %s%s%s%s type arg", array, ptr, pkgName, rule.Type)
 		if rule.Index != nil {
