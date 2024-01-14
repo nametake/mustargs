@@ -1,7 +1,6 @@
 package mustargs
 
 import (
-	"fmt"
 	"go/ast"
 	"go/importer"
 	"go/types"
@@ -38,7 +37,6 @@ func run(pass *analysis.Pass) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", config)
 
 	nodeFilter := []ast.Node{
 		// (*ast.GenDecl)(nil),
@@ -75,9 +73,6 @@ func run(pass *analysis.Pass) (any, error) {
 			}
 
 			recvName := recvName(signature)
-			if recvName != "" {
-				fmt.Printf("Recv: %+v\n", recvName)
-			}
 
 			args := NewAstArgsBySignature(signature)
 

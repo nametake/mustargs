@@ -47,9 +47,11 @@ func isPointer(typ types.Type) (types.Type, bool) {
 }
 
 func isArray(typ types.Type) (types.Type, bool) {
-	switch typ.(type) {
-	case *types.Slice, *types.Array:
-		return typ.Underlying(), true
+	switch t := typ.(type) {
+	case *types.Array:
+		return t.Elem(), true
+	case *types.Slice:
+		return t.Elem(), true
 	}
 	return typ, false
 }
@@ -62,7 +64,7 @@ func NewAstArgsBySignature(signature *types.Signature) []*AstArg {
 
 		if typ, ok := isArray(argType); ok {
 			opts = append(opts, WithIsArray())
-			argType = typ
+			argType = typ.Underlying()
 		}
 
 		if typ, ok := isPointer(argType); ok {
