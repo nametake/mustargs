@@ -1,13 +1,11 @@
 package mustargs
 
 import (
-	"fmt"
-	"go/ast"
 	"go/types"
 	"strings"
 )
 
-type AstArg struct {
+type astArg struct {
 	Index   int
 	Type    string
 	Pkg     string
@@ -16,7 +14,7 @@ type AstArg struct {
 	IsArray bool
 }
 
-type Option func(*AstArg)
+type option func(*astArg)
 
 func recvName(sig *types.Signature) string {
 	if sig == nil {
@@ -56,168 +54,77 @@ func isArray(typ types.Type) (types.Type, bool) {
 	return typ, false
 }
 
-func NewAstArgsBySignature(signature *types.Signature) []*AstArg {
-	var args []*AstArg
+func newAstArgsBySignature(signature *types.Signature) []*astArg {
+	var args []*astArg
 	for i := 0; i < signature.Params().Len(); i++ {
-		opts := []Option{WithIndex(i)}
+		opts := []option{withIndex(i)}
 		argType := signature.Params().At(i).Type()
 
 		if typ, ok := isArray(argType); ok {
-			opts = append(opts, WithIsArray())
+			opts = append(opts, withIsArray())
 			argType = typ.Underlying()
 		}
 
 		if typ, ok := isPointer(argType); ok {
-			opts = append(opts, WithIsPtr())
+			opts = append(opts, withIsPtr())
 			argType = typ
 		}
 
 		switch u := argType.(type) {
 		case *types.Named:
-			opts = append(opts, WithType(u.Obj().Name()), WithPkg(u.Obj().Pkg().Path()))
+			opts = append(opts, withType(u.Obj().Name()), withPkg(u.Obj().Pkg().Path()))
 		case *types.Basic:
-			opts = append(opts, WithType(u.Name()))
+			opts = append(opts, withType(u.Name()))
 		default:
 			continue
 		}
-		args = append(args, NewAstArgByOptions(opts...))
+		args = append(args, newAstArgByOptions(opts...))
 	}
 	return args
 }
 
-func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
-	astArg := &AstArg{
-		Type:    typ,
-		PkgName: pkgName,
-	}
-
-	for _, option := range options {
-		option(astArg)
-	}
-
-	return astArg
-}
-
-func NewAstArgByOptions(options ...Option) *AstArg {
-	astArg := &AstArg{}
+func newAstArgByOptions(options ...option) *astArg {
+	astArg := &astArg{}
 	for _, option := range options {
 		option(astArg)
 	}
 	return astArg
 }
 
-func WithType(typ string) Option {
-	return func(arg *AstArg) {
+func withType(typ string) option {
+	return func(arg *astArg) {
 		arg.Type = typ
 	}
 }
 
-func WithIndex(index int) Option {
-	return func(arg *AstArg) {
+func withIndex(index int) option {
+	return func(arg *astArg) {
 		arg.Index = index
 	}
 }
 
-func WithIsPtr() Option {
-	return func(arg *AstArg) {
+func withIsPtr() option {
+	return func(arg *astArg) {
 		arg.IsPtr = true
 	}
 }
 
-func WithPkgMap(packages map[string]string) Option {
-	return func(arg *AstArg) {
-		arg.Pkg = packages[arg.PkgName]
-	}
-}
-
-func WithPkg(pkg string) Option {
-	return func(arg *AstArg) {
+func withPkg(pkg string) option {
+	return func(arg *astArg) {
 		arg.Pkg = pkg
 	}
 }
 
-func WithIsArray() Option {
-	return func(arg *AstArg) {
+func withIsArray() option {
+	return func(arg *astArg) {
 		arg.IsArray = true
 	}
-}
-
-func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
-	var args []*AstArg
-	for i, list := range funcDecl.Type.Params.List {
-		for j := range list.Names {
-			switch typ := list.Type.(type) {
-			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
-				// TODO support
-			case *ast.ArrayType:
-				args = append(args, checkStarExpr(typ.Elt, WithIndex(i+j), WithPkgMap(packages), WithIsArray()))
-			default:
-				args = append(args, checkStarExpr(typ, WithIndex(i+j), WithPkgMap(packages)))
-			}
-		}
-	}
-	return args
-}
-
-func checkStarExpr(expr ast.Expr, options ...Option) *AstArg {
-	switch typ := expr.(type) {
-	case *ast.StarExpr:
-		return checkSelectorExpr(typ.X, append(options, WithIsPtr())...)
-	}
-	return checkSelectorExpr(expr, options...)
-}
-
-func checkSelectorExpr(expr ast.Expr, options ...Option) *AstArg {
-	switch typ := expr.(type) {
-	case *ast.Ident:
-		return NewAstArg(typ.Name, "", options...)
-	case *ast.SelectorExpr:
-		name := typ.X.(*ast.Ident).Name
-		return NewAstArg(typ.Sel.Name, name, options...)
-	}
-	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
 func extractPkgName(importPath string) string {
 	parts := strings.Split(importPath, "/")
 	if len(parts) > 0 {
 		return parts[len(parts)-1]
-	}
-	return ""
-}
-
-func trimQuotes(str string) string {
-	replacer := strings.NewReplacer("\"", "", "'", "")
-	return replacer.Replace(str)
-}
-
-func ExtractImportPackages(specs []ast.Spec) map[string]string {
-	packages := make(map[string]string)
-	for _, spec := range specs {
-		switch s := spec.(type) {
-		case *ast.ImportSpec:
-			pkg := trimQuotes(s.Path.Value)
-			name := ""
-			if s.Name != nil {
-				name = s.Name.Name
-			} else {
-				name = extractPkgName(pkg)
-			}
-			packages[name] = pkg
-		}
-	}
-	return packages
-}
-
-func ExtractRecvName(recv *ast.FieldList) string {
-	if recv == nil {
-		return ""
-	}
-	switch typ := recv.List[0].Type.(type) {
-	case *ast.Ident:
-		return typ.Name
-	case *ast.StarExpr:
-		return typ.X.(*ast.Ident).Name
 	}
 	return ""
 }

@@ -121,7 +121,7 @@ type ArgRule struct {
 	IsArray bool   `yaml:"is_array,omitempty"`
 }
 
-func (rule *ArgRule) Match(args []*AstArg) bool {
+func (rule *ArgRule) Match(args []*astArg) bool {
 	argsLen := len(args)
 	for i, arg := range args {
 		if rule.Index != nil && !rule.matchIndex(i, argsLen) {
@@ -145,35 +145,28 @@ func (rule *ArgRule) matchIndex(index, argsLen int) bool {
 	return true
 }
 
-func (rule *ArgRule) matchType(arg *AstArg) bool {
+func (rule *ArgRule) matchType(arg *astArg) bool {
 	return arg.Type == rule.Type
 }
 
-func (rule *ArgRule) matchPtr(arg *AstArg) bool {
+func (rule *ArgRule) matchPtr(arg *astArg) bool {
 	return arg.IsPtr == rule.IsPtr
 }
 
-func (rule *ArgRule) matchPkg(arg *AstArg) bool {
+func (rule *ArgRule) matchPkg(arg *astArg) bool {
 	if rule.Pkg != "" {
 		return arg.Pkg == rule.Pkg
 	}
 	return true
 }
 
-func (rule *ArgRule) matchPkgMap(arg *AstArg) bool {
-	if rule.Pkg != "" {
-		return arg.Pkg == rule.Pkg && rule.PkgName == arg.PkgName
-	}
-	return true
-}
-
-func (rule *ArgRule) matchIsArray(arg *AstArg) bool {
+func (rule *ArgRule) matchIsArray(arg *astArg) bool {
 	return arg.IsArray == rule.IsArray
 }
 
 type ArgRules []*ArgRule
 
-func (argRules ArgRules) Match(args []*AstArg) ArgRules {
+func (argRules ArgRules) Match(args []*astArg) ArgRules {
 	unmatchedRules := make(ArgRules, 0, len(argRules))
 	for _, ruleArg := range argRules {
 		if !ruleArg.Match(args) {

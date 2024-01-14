@@ -74,7 +74,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 			recvName := recvName(signature)
 
-			args := NewAstArgsBySignature(signature)
+			args := newAstArgsBySignature(signature)
 
 			for _, rule := range config.Rules {
 				isTargetFile, err := rule.IsTargetFile(fileName)
