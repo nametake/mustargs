@@ -4,6 +4,8 @@ import (
 	"go/types"
 )
 
+type option func(*astArg)
+
 type astArg struct {
 	Index   int
 	Type    string
@@ -12,58 +14,18 @@ type astArg struct {
 	IsArray bool
 }
 
-type option func(*astArg)
-
-func recvName(sig *types.Signature) string {
-	if sig == nil {
-		return ""
-	}
-	recv := sig.Recv()
-	if recv == nil {
-		return ""
-	}
-	recvType := recv.Type()
-
-	switch typ := recvType.(type) {
-	case *types.Pointer:
-		if named, ok := typ.Elem().(*types.Named); ok {
-			return named.Obj().Name()
-		}
-	case *types.Named:
-		return typ.Obj().Name()
-	}
-	return ""
-}
-
-func isPointer(typ types.Type) (types.Type, bool) {
-	if typ, ok := typ.Underlying().(*types.Pointer); ok {
-		return typ.Elem(), true
-	}
-	return typ, false
-}
-
-func isArray(typ types.Type) (types.Type, bool) {
-	switch t := typ.(type) {
-	case *types.Array:
-		return t.Elem(), true
-	case *types.Slice:
-		return t.Elem(), true
-	}
-	return typ, false
-}
-
-func newAstArgsBySignature(signature *types.Signature) []*astArg {
+func newAstArgs(signature *types.Signature) []*astArg {
 	var args []*astArg
 	for i := 0; i < signature.Params().Len(); i++ {
 		opts := []option{withIndex(i)}
 		argType := signature.Params().At(i).Type()
 
-		if typ, ok := isArray(argType); ok {
+		if typ, ok := arrayType(argType); ok {
 			opts = append(opts, withIsArray())
-			argType = typ.Underlying()
+			argType = typ
 		}
 
-		if typ, ok := isPointer(argType); ok {
+		if typ, ok := pointerType(argType); ok {
 			opts = append(opts, withIsPtr())
 			argType = typ
 		}
@@ -76,12 +38,12 @@ func newAstArgsBySignature(signature *types.Signature) []*astArg {
 		default:
 			continue
 		}
-		args = append(args, newAstArgByOptions(opts...))
+		args = append(args, newAstArg(opts...))
 	}
 	return args
 }
 
-func newAstArgByOptions(options ...option) *astArg {
+func newAstArg(options ...option) *astArg {
 	astArg := &astArg{}
 	for _, option := range options {
 		option(astArg)
@@ -117,4 +79,42 @@ func withIsArray() option {
 	return func(arg *astArg) {
 		arg.IsArray = true
 	}
+}
+
+func pointerType(typ types.Type) (types.Type, bool) {
+	if typ, ok := typ.Underlying().(*types.Pointer); ok {
+		return typ.Elem(), true
+	}
+	return typ, false
+}
+
+func arrayType(typ types.Type) (types.Type, bool) {
+	switch t := typ.(type) {
+	case *types.Array:
+		return t.Elem().Underlying(), true
+	case *types.Slice:
+		return t.Elem().Underlying(), true
+	}
+	return typ, false
+}
+
+func recvName(sig *types.Signature) string {
+	if sig == nil {
+		return ""
+	}
+	recv := sig.Recv()
+	if recv == nil {
+		return ""
+	}
+	recvType := recv.Type()
+
+	switch typ := recvType.(type) {
+	case *types.Pointer:
+		if named, ok := typ.Elem().(*types.Named); ok {
+			return named.Obj().Name()
+		}
+	case *types.Named:
+		return typ.Obj().Name()
+	}
+	return ""
 }

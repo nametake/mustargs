@@ -39,9 +39,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	nodeFilter := []ast.Node{
-		// (*ast.GenDecl)(nil),
 		(*ast.FuncDecl)(nil),
-		// (*ast.Ident)(nil),
 	}
 
 	conf := types.Config{Importer: importer.Default()}
@@ -74,7 +72,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 			recvName := recvName(signature)
 
-			args := newAstArgsBySignature(signature)
+			args := newAstArgs(signature)
 
 			for _, rule := range config.Rules {
 				isTargetFile, err := rule.IsTargetFile(fileName)
