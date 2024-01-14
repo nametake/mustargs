@@ -18,8 +18,68 @@ type AstArg struct {
 
 type Option func(*AstArg)
 
+func recvName(sig *types.Signature) string {
+	if sig == nil {
+		return ""
+	}
+	recv := sig.Recv()
+	if recv == nil {
+		return ""
+	}
+	recvType := recv.Type()
+
+	switch typ := recvType.(type) {
+	case *types.Pointer:
+		if named, ok := typ.Elem().(*types.Named); ok {
+			return named.Obj().Name()
+		}
+	case *types.Named:
+		return typ.Obj().Name()
+	}
+	return ""
+}
+
+func isPointer(typ types.Type) (types.Type, bool) {
+	if typ, ok := typ.Underlying().(*types.Pointer); ok {
+		return typ.Elem(), true
+	}
+	return typ, false
+}
+
+func isArray(typ types.Type) (types.Type, bool) {
+	switch typ.(type) {
+	case *types.Slice, *types.Array:
+		return typ.Underlying(), true
+	}
+	return typ, false
+}
+
 func NewAstArgsBySignature(signature *types.Signature) []*AstArg {
 	var args []*AstArg
+	for i := 0; i < signature.Params().Len(); i++ {
+		opts := []Option{WithIndex(i)}
+		argType := signature.Params().At(i).Type()
+
+		if typ, ok := isArray(argType); ok {
+			opts = append(opts, WithIsArray())
+			argType = typ
+		}
+
+		if typ, ok := isPointer(argType); ok {
+			opts = append(opts, WithIsPtr())
+			argType = typ
+		}
+
+		switch u := argType.(type) {
+		case *types.Named:
+			opts = append(opts, WithType(u.Obj().Name()), WithPkg(u.Obj().Pkg().Path()))
+		case *types.Basic:
+			opts = append(opts, WithType(u.Name()))
+		default:
+			continue
+		}
+		args = append(args, NewAstArgByOptions(opts...))
+	}
 	return args
 }
 
@@ -36,6 +96,20 @@ func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
 	return astArg
 }
 
+func NewAstArgByOptions(options ...Option) *AstArg {
+	astArg := &AstArg{}
+	for _, option := range options {
+		option(astArg)
+	}
+	return astArg
+}
+
+func WithType(typ string) Option {
+	return func(arg *AstArg) {
+		arg.Type = typ
+	}
+}
+
 func WithIndex(index int) Option {
 	return func(arg *AstArg) {
 		arg.Index = index
@@ -48,9 +122,15 @@ func WithIsPtr() Option {
 	}
 }
 
-func WithPkg(packages map[string]string) Option {
+func WithPkgMap(packages map[string]string) Option {
 	return func(arg *AstArg) {
 		arg.Pkg = packages[arg.PkgName]
+	}
+}
+
+func WithPkg(pkg string) Option {
+	return func(arg *AstArg) {
+		arg.Pkg = pkg
 	}
 }
 
@@ -68,9 +148,9 @@ func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
 			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
 				// TODO support
 			case *ast.ArrayType:
-				args = append(args, checkStarExpr(typ.Elt, WithIndex(i+j), WithPkg(packages), WithIsArray()))
+				args = append(args, checkStarExpr(typ.Elt, WithIndex(i+j), WithPkgMap(packages), WithIsArray()))
 			default:
-				args = append(args, checkStarExpr(typ, WithIndex(i+j), WithPkg(packages)))
+				args = append(args, checkStarExpr(typ, WithIndex(i+j), WithPkgMap(packages)))
 			}
 		}
 	}

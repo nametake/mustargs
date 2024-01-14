@@ -74,9 +74,9 @@ func run(pass *analysis.Pass) (any, error) {
 				return
 			}
 
-			var recvName string
-			if recv := signature.Recv(); recv != nil {
-				recvName = recv.Name()
+			recvName := recvName(signature)
+			if recvName != "" {
+				fmt.Printf("Recv: %+v\n", recvName)
 			}
 
 			args := NewAstArgsBySignature(signature)

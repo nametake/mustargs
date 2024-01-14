@@ -155,6 +155,13 @@ func (rule *ArgRule) matchPtr(arg *AstArg) bool {
 
 func (rule *ArgRule) matchPkg(arg *AstArg) bool {
 	if rule.Pkg != "" {
+		return arg.Pkg == rule.Pkg
+	}
+	return true
+}
+
+func (rule *ArgRule) matchPkgMap(arg *AstArg) bool {
+	if rule.Pkg != "" {
 		return arg.Pkg == rule.Pkg && rule.PkgName == arg.PkgName
 	}
 	return true
