@@ -1,135 +1,120 @@
 package mustargs
 
 import (
-	"fmt"
-	"go/ast"
-	"strings"
+	"go/types"
 )
 
-type AstArg struct {
+type option func(*astArg)
+
+type astArg struct {
 	Index   int
 	Type    string
 	Pkg     string
-	PkgName string
 	IsPtr   bool
 	IsArray bool
 }
 
-type Option func(*AstArg)
+func newAstArgs(signature *types.Signature) []*astArg {
+	var args []*astArg
+	for i := 0; i < signature.Params().Len(); i++ {
+		opts := []option{withIndex(i)}
+		argType := signature.Params().At(i).Type()
 
-func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
-	astArg := &AstArg{
-		Type:    typ,
-		PkgName: pkgName,
-	}
-
-	for _, option := range options {
-		option(astArg)
-	}
-
-	return astArg
-}
-
-func WithIndex(index int) Option {
-	return func(arg *AstArg) {
-		arg.Index = index
-	}
-}
-
-func WithIsPtr() Option {
-	return func(arg *AstArg) {
-		arg.IsPtr = true
-	}
-}
-
-func WithPkg(packages map[string]string) Option {
-	return func(arg *AstArg) {
-		arg.Pkg = packages[arg.PkgName]
-	}
-}
-
-func WithIsArray() Option {
-	return func(arg *AstArg) {
-		arg.IsArray = true
-	}
-}
-
-func NewAstArgs(funcDecl *ast.FuncDecl, packages map[string]string) []*AstArg {
-	var args []*AstArg
-	for i, list := range funcDecl.Type.Params.List {
-		for j := range list.Names {
-			switch typ := list.Type.(type) {
-			case *ast.MapType, *ast.Ellipsis, *ast.InterfaceType, *ast.ChanType, *ast.FuncType, *ast.StructType:
-				// TODO support
-			case *ast.ArrayType:
-				args = append(args, checkStarExpr(typ.Elt, WithIndex(i+j), WithPkg(packages), WithIsArray()))
-			default:
-				args = append(args, checkStarExpr(typ, WithIndex(i+j), WithPkg(packages)))
-			}
+		if typ, ok := arrayType(argType); ok {
+			opts = append(opts, withIsArray())
+			argType = typ
 		}
+
+		if typ, ok := pointerType(argType); ok {
+			opts = append(opts, withIsPtr())
+			argType = typ
+		}
+
+		switch u := argType.(type) {
+		case *types.Named:
+			opts = append(opts, withType(u.Obj().Name()), withPkg(u.Obj().Pkg().Path()))
+		case *types.Basic:
+			opts = append(opts, withType(u.Name()))
+		default:
+			continue
+		}
+		args = append(args, newAstArg(opts...))
 	}
 	return args
 }
 
-func checkStarExpr(expr ast.Expr, options ...Option) *AstArg {
-	switch typ := expr.(type) {
-	case *ast.StarExpr:
-		return checkSelectorExpr(typ.X, append(options, WithIsPtr())...)
+func newAstArg(options ...option) *astArg {
+	astArg := &astArg{}
+	for _, option := range options {
+		option(astArg)
 	}
-	return checkSelectorExpr(expr, options...)
+	return astArg
 }
 
-func checkSelectorExpr(expr ast.Expr, options ...Option) *AstArg {
-	switch typ := expr.(type) {
-	case *ast.Ident:
-		return NewAstArg(typ.Name, "", options...)
-	case *ast.SelectorExpr:
-		name := typ.X.(*ast.Ident).Name
-		return NewAstArg(typ.Sel.Name, name, options...)
+func withType(typ string) option {
+	return func(arg *astArg) {
+		arg.Type = typ
 	}
-	panic(fmt.Sprintf("unsupported arg type: ast.Expr type = %T", expr))
 }
 
-func extractPkgName(importPath string) string {
-	parts := strings.Split(importPath, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
+func withIndex(index int) option {
+	return func(arg *astArg) {
+		arg.Index = index
 	}
-	return ""
 }
 
-func trimQuotes(str string) string {
-	replacer := strings.NewReplacer("\"", "", "'", "")
-	return replacer.Replace(str)
-}
-
-func ExtractImportPackages(specs []ast.Spec) map[string]string {
-	packages := make(map[string]string)
-	for _, spec := range specs {
-		switch s := spec.(type) {
-		case *ast.ImportSpec:
-			pkg := trimQuotes(s.Path.Value)
-			name := ""
-			if s.Name != nil {
-				name = s.Name.Name
-			} else {
-				name = extractPkgName(pkg)
-			}
-			packages[name] = pkg
-		}
+func withIsPtr() option {
+	return func(arg *astArg) {
+		arg.IsPtr = true
 	}
-	return packages
 }
 
-func ExtractRecvName(recv *ast.FieldList) string {
+func withPkg(pkg string) option {
+	return func(arg *astArg) {
+		arg.Pkg = pkg
+	}
+}
+
+func withIsArray() option {
+	return func(arg *astArg) {
+		arg.IsArray = true
+	}
+}
+
+func pointerType(typ types.Type) (types.Type, bool) {
+	if typ, ok := typ.Underlying().(*types.Pointer); ok {
+		return typ.Elem(), true
+	}
+	return typ, false
+}
+
+func arrayType(typ types.Type) (types.Type, bool) {
+	switch t := typ.(type) {
+	case *types.Array:
+		return t.Elem().Underlying(), true
+	case *types.Slice:
+		return t.Elem().Underlying(), true
+	}
+	return typ, false
+}
+
+func recvName(sig *types.Signature) string {
+	if sig == nil {
+		return ""
+	}
+	recv := sig.Recv()
 	if recv == nil {
 		return ""
 	}
-	switch typ := recv.List[0].Type.(type) {
-	case *ast.Ident:
-		return typ.Name
-	case *ast.StarExpr:
-		return typ.X.(*ast.Ident).Name
+	recvType := recv.Type()
+
+	switch typ := recvType.(type) {
+	case *types.Pointer:
+		if named, ok := typ.Elem().(*types.Named); ok {
+			return named.Obj().Name()
+		}
+	case *types.Named:
+		return typ.Obj().Name()
 	}
 	return ""
 }
