@@ -3,6 +3,7 @@ package mustargs
 import (
 	"fmt"
 	"go/ast"
+	"go/types"
 	"strings"
 )
 
@@ -16,6 +17,11 @@ type AstArg struct {
 }
 
 type Option func(*AstArg)
+
+func NewAstArgsBySignature(signature *types.Signature) []*AstArg {
+	var args []*AstArg
+	return args
+}
 
 func NewAstArg(typ, pkgName string, options ...Option) *AstArg {
 	astArg := &AstArg{

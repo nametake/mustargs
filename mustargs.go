@@ -1,8 +1,10 @@
 package mustargs
 
 import (
+	"fmt"
 	"go/ast"
-	"go/token"
+	"go/importer"
+	"go/types"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -36,28 +38,49 @@ func run(pass *analysis.Pass) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("%+v\n", config)
 
 	nodeFilter := []ast.Node{
-		(*ast.GenDecl)(nil),
+		// (*ast.GenDecl)(nil),
 		(*ast.FuncDecl)(nil),
+		// (*ast.Ident)(nil),
 	}
 
-	var packages map[string]string
-	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		fileName := pass.Fset.File(n.Pos()).Name()
+	conf := types.Config{Importer: importer.Default()}
+	info := &types.Info{
+		Defs: make(map[*ast.Ident]types.Object),
+	}
 
+	if _, err := conf.Check(pass.Pkg.Path(), pass.Fset, pass.Files, info); err != nil {
+		return nil, err
+	}
+
+	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		switch n := n.(type) {
-		case *ast.GenDecl:
-			if n.Tok == token.IMPORT {
-				packages = ExtractImportPackages(n.Specs)
-			}
 		case *ast.FuncDecl:
-			funcName := n.Name.Name
+			def, ok := info.Defs[n.Name]
+			if !ok {
+				return
+			}
+
+			signature, ok := def.Type().(*types.Signature)
+			if !ok {
+				return
+			}
+			fileName := pass.Fset.File(n.Pos()).Name()
+
+			funcName := def.Name()
 			if funcName == "init" || funcName == "main" {
 				return
 			}
-			recvName := ExtractRecvName(n.Recv)
-			args := NewAstArgs(n, packages)
+
+			var recvName string
+			if recv := signature.Recv(); recv != nil {
+				recvName = recv.Name()
+			}
+
+			args := NewAstArgsBySignature(signature)
+
 			for _, rule := range config.Rules {
 				isTargetFile, err := rule.IsTargetFile(fileName)
 				if err != nil {
