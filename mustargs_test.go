@@ -76,6 +76,10 @@ func TestAnalyzer(t *testing.T) {
 			patterns:   []string{"unsupporttype"},
 		},
 		{
+			configFile: "testdata/src/maininit/config.yaml",
+			patterns:   []string{"maininit"},
+		},
+		{
 			configFile: "testdata/src/example/config.yaml",
 			patterns:   []string{"example"},
 		},
