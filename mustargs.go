@@ -2,7 +2,6 @@ package mustargs
 
 import (
 	"go/ast"
-	"go/importer"
 	"go/types"
 
 	"golang.org/x/tools/go/analysis"
@@ -42,19 +41,10 @@ func run(pass *analysis.Pass) (any, error) {
 		(*ast.FuncDecl)(nil),
 	}
 
-	conf := types.Config{Importer: importer.Default()}
-	info := &types.Info{
-		Defs: make(map[*ast.Ident]types.Object),
-	}
-
-	if _, err := conf.Check(pass.Pkg.Path(), pass.Fset, pass.Files, info); err != nil {
-		return nil, err
-	}
-
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		switch n := n.(type) {
 		case *ast.FuncDecl:
-			def, ok := info.Defs[n.Name]
+			def, ok := pass.TypesInfo.Defs[n.Name]
 			if !ok {
 				return
 			}
