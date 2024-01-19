@@ -32,7 +32,11 @@ func newAstArgs(signature *types.Signature) []*astArg {
 
 		switch u := argType.(type) {
 		case *types.Named:
-			opts = append(opts, withType(u.Obj().Name()), withPkg(u.Obj().Pkg().Path()))
+			opts = append(opts, withType(u.Obj().Name()))
+			// for primitive interface (e.g. error)
+			if u.Obj().Pkg() != nil {
+				opts = append(opts, withPkg(u.Obj().Pkg().Path()))
+			}
 		case *types.Basic:
 			opts = append(opts, withType(u.Name()))
 		default:

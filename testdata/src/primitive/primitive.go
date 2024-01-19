@@ -11,3 +11,6 @@ func f3(str string) { // want "no int type arg found for func f3"
 
 func f4(num int, str string) {
 }
+
+func errorFn(num int, str string, err error) {
+}
