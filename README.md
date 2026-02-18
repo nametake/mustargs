@@ -11,7 +11,7 @@ go install github.com/nametake/mustargs/cmd/mustargs@latest
 ## Usage
 
 ```console
-go vet -vettool=`which mustargs` -mustargs.config=$(pwd)/config.yaml .
+mustargs -mustargs.config=$(pwd)/config.yaml ./...
 ```
 
 ## Rule Definition
